@@ -1,3 +1,13 @@
+function forEachMatching(selector, callback) {
+    var results = document.querySelectorAll(selector),
+        length = results.length;
+        i;
+    
+    for(i = 0; i < length; i++) {
+        callback.call(results[i], i, results[i]);
+    }
+}
+
 function __rand(number)
 {
 	return Math.floor(Math.random()*number);

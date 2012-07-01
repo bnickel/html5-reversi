@@ -228,9 +228,15 @@ GameView.prototype.onMouseOut = function(sender, event)
 	}
 }
 
-GameView.prototype.onInteractiveChanged = function(sender, event)
-{
-	this.getCanvasElement().className = event.newValue ? "" : "busy";
+GameView.prototype.onInteractiveChanged = function(sender, event) {
+    var className = this.getCanvasElement().className;
+    if(event.newValue) {
+        className = className.replace(/\bbusy\b/g, '');
+    } else {
+        className += ' busy';
+    }
+    
+    this.getCanvasElement().className = className;
 }
 
 GameView.prototype.onGameOver = function(sender, event)

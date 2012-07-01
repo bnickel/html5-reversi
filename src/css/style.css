@@ -1,5 +1,5 @@
 html {
-	width: 350px;
+	width: 370px;
 	margin: 20px auto;
 	padding: 0;
     
@@ -25,11 +25,11 @@ body {
             box-shadow: 5px 5px 25px rgba(0, 0, 0, 0.5);
 }
 
-.title {
+.title-bar {
 	height: 19px;
 	border-bottom: 1px solid #596269;
 	text-align: center;
-	width: 300px;
+	width: 320px;
 	margin: 0 auto;
 	text-shadow: white 0px 1px 0px;
     
@@ -45,19 +45,20 @@ body {
     background-image:         linear-gradient(#eff6f9, #bdc5c9);
 }
 
-.title h1 {
+.title-bar h1 {
 	font-size: 12px;
 	margin: 0;
 	padding: 2px;
 }
 
-.status {
-	position: relative;
+.status-bar {
+    position: relative;
+	width: 320px;
+    height: 42px;
+	margin: 0 auto;
     
-	height:        42px;
-	border-top:    1px solid #cad6e2;
-	border-bottom: 1px solid #22374a;
-	text-align: center;
+    border-top:    1px solid #cad6e2;
+    border-bottom: 1px solid #22374a;
     
     background-color: #8195af;
     background-image: url(../img/status.svg);
@@ -68,54 +69,42 @@ body {
     background-image:         linear-gradient(#afbbcb, #8b9db5 48%, #8195af 50%, #6e86a4);
 }
 
-.status, footer {
-	color: #f7ffff;
-	text-shadow: 0 -1px 0 rgba(0,0,0, 0.4);
-	width: 300px;
-	margin: 0 auto;
-}
-
-.status h2 {
+.status-bar .message {
+    color: #f7ffff;
+    
 	margin: 0;
 	padding: 15px 0 5px 0;
 	font-size: 22px;
+    font-weight: bold;
 	text-align: center;
-	width: 300px;
+    text-shadow: 0 -1px 0 rgba(0,0,0, 0.4);
 	line-height: 40%;
 }
 
-.status h2 small {
+.status-bar .message small {
 	font-size: 12px;
 }
 
-.score {
-	display:inline-block;
-	width: 120px;
-	font-weight: bold;
+.status-bar .score-box {
+    position: absolute;
+    top: 6px;
+    width: 20px;
+    height: 20px;
 	margin: 0;
-	font-size: 16px;
-	color: transparent;
-	text-shadow: none;
-}
-
-#blackscore, #whitescore {
-	display: block;
-	top: 6px;
-	width: 20px;
-	border: 1px solid rgba(0, 0, 0, 0.398438);
+	padding: 7px 12px 0px;
+    text-align: center;
+    text-shadow: rgba(0, 0, 0, 0.398438) 0px -1px 0px;
+    
 	font-size: 12px;
 	font-weight: bold;
-	height: 20px;
-	padding: 7px 12px 0px;
-	position: absolute;
     
+	border: 1px solid rgba(0, 0, 0, 0.398438);
     border-radius: 5px;
 }
 
-#whitescore {
+.status-bar .score-box.white {
     right: 10px;
     color: black;
-    text-shadow: rgba(0, 0, 0, 0.398438) 0px -1px 0px;
     
     background-color: white;
     background-image: url(../img/whitescore.svg);
@@ -126,10 +115,9 @@ body {
     background-image:         linear-gradient(white, #EDEDED 50%, #DFDFDF 51%, #E7E7E7);
 }
 
-#blackscore {
+.status-bar .score-box.black {
     left: 10px;
     color: white;
-    text-shadow: rgba(0, 0, 0, 0.398438) 0px -1px 0px;
     
     background-color: black;
     background-image: url(../img/blackscore.svg);
@@ -140,21 +128,17 @@ body {
     background-image:         linear-gradient(#3B3B3B, #1D1D1D 50%, black 51%, black);
 }
 
-.game {
-	margin: 0 auto;
-	width: 300px;
-}
-
-.game canvas {
+.game-board {
     display: block;
+    margin: 0 auto;
 }
 
-.game canvas.busy {
+.game-board.busy {
     cursor: wait;
 }
 
-footer {
-    width: 300px;
+.contols-bar {
+    width: 320px;
     height: 132px;
     margin: 0 auto;
     padding: 0;
@@ -177,37 +161,7 @@ footer {
     background-image:         linear-gradient(#9098A3, #454f5d);
 }
 
-.config h2 {
-	padding: 2px 0 0 0;
-	margin: 0;
-	text-align: center;
-	font-size: 14px;
-}
-
-.config table {
-	margin: auto;
-}
-
-.config button
-{
-	width: 52px;
-	height: 20px;
-	margin: 0px;
-	font-size: 11px;
-	text-algin: center;
-}
-
-#gameboard {
-    position: relative;
-}
-
-footer button#newgame {
-	width:  276px;
-	margin: 10px 0 10px 0;
-	height: 24px;
-}
-
-footer button {
+.contols-bar button {
     color: black;
     font: bold 1.35em Helvetica, Arial, sans-serif bold;
     text-shadow: 0 1px 1px white;
@@ -230,7 +184,7 @@ footer button {
     background-image:         linear-gradient(#f8f8f9, #dddfe1);
 }
 
-footer button:active {
+.contols-bar button:active {
     background-color: #c6c8cc;
     background-image: url(../img/footer-button-active.svg);
     background-image: -webkit-linear-gradient(#e2e3e4, #aaadb4);
@@ -240,7 +194,7 @@ footer button:active {
     background-image:         linear-gradient(#e2e3e4, #aaadb4);
 }
 
-footer button.checked {
+.contols-bar button.checked {
     color: white;
     text-shadow: rgba(0, 0, 0, 0.496094) 0px -1px 1px;
     
@@ -253,7 +207,7 @@ footer button.checked {
     background-image:         linear-gradient(#939ba6, #687180);
 }
 
-footer button.checked:active {
+.contols-bar button.checked:active {
     color:#3A3D42;
     text-shadow:0 1px 1px white;
         
@@ -264,4 +218,32 @@ footer button.checked:active {
     background-image:     -ms-linear-gradient(#f8f8f9, #dddfe1);
     background-image:      -o-linear-gradient(#f8f8f9, #dddfe1);
     background-image:         linear-gradient(#f8f8f9, #dddfe1);
+}
+
+.contols-bar button.full-width {
+	width:  276px;
+	margin: 10px 0 10px 0;
+	height: 24px;
+}
+
+.player-selector h2 {
+	padding: 2px 0 0 0;
+	margin: 0;
+	text-align: center;
+	font-size: 14px;
+	color: #f7ffff;
+	text-shadow: 0 -1px 0 rgba(0,0,0, 0.4);
+}
+
+.player-selector table {
+	margin: auto;
+}
+
+.player-selector button
+{
+	width: 52px;
+	height: 20px;
+	margin: 0px;
+	font-size: 11px;
+	text-algin: center;
 }
