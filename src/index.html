@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<head>
+<title>HTML5 Reversi by Brian Nickel</title>
+<link rel="stylesheet" href="css/style.css">
+<script src="js/Helper.js"></script>
+<script src="js/Board.js"></script>
+<script src="js/GameModel.js"></script>
+<script src="js/GameView.js"></script>
+<script src="js/ReversiGameModel.js"></script>
+<script src="js/PlayerSelector.js"></script>
+<script>
+
+var model, view, worker, blackMode, whiteMode;
+
+window.onload = function()
+{
+	model = new ReversiGameModel(8, 8);
+	view  = new GameView(getElement("gameboard"), model);
+
+	model.addEventListener("newgame", onNewGame, false);
+	model.addEventListener("gameover", onGameOver, false);
+	model.addEventListener("turnchanged", onTurnChanged, false);
+	model.addEventListener("move", onMove, false);
+	model.newGame();
+
+	blackMode = new PlayerSelector(getElement("blackselector"), "Black Player");
+	whiteMode = new PlayerSelector(getElement("whiteselector"), "White Player");
+	blackMode.addEventListener("valuechanged", onBlackModeChanged, false);
+	whiteMode.addEventListener("valuechanged", onWhiteModeChanged, false);
+}
+
+function onNewGame(event)
+{
+	updateScore();
+	if(model.getTurn() == BLACK)
+		setTitle("Black's Turn");
+	if(model.getTurn() == WHITE)
+		setTitle("White's Turn");
+}
+
+function onMove(event)
+{
+	updateScore();
+}
+
+function onTurnChanged(event)
+{
+	if(event.newTurn == EMPTY)
+		setTitle("No Moves");
+	else if(event.newTurn == BLACK && event.oldTurn == BLACK)
+		setTitle("Black's Turn<br><small>(Again)</small>");
+	else if(event.newTurn == WHITE && event.oldTurn == WHITE)
+		setTitle("White's Turn<br><small>(Again)</small>");
+	else if(event.newTurn == BLACK)
+		setTitle("Black's Turn");
+	else if(event.newTurn == WHITE)
+		setTitle("White's Turn");
+
+	getBestMove(event.newTurn);
+}
+
+function onGameOver(event)
+{
+	var diff = model.getBlackScore() - model.getWhiteScore();
+	setTitle(diff == 0 ? "Tie Game!" : (diff > 0 ? "Black Wins!" : "White Wins!"));
+}
+
+function onBlackModeChanged(event)
+{
+	model.setInteractive(BLACK, event.newMode == "human");
+
+	killWorker();
+
+	if(event.newMode == "human")
+		return;
+
+	if(model.getTurn() == BLACK)
+		getBestMove(BLACK);
+}
+
+function onWhiteModeChanged(event)
+{
+	model.setInteractive(WHITE, event.newMode == "human");
+
+	if(worker != undefined)
+		worker.terminate();
+
+	if(event.newMode == "human")
+		return;
+
+	if(model.getTurn() == WHITE)
+		getBestMove(WHITE);
+}
+
+function onWorkerMessage(event)
+{
+	var data   = event.data.split(",");
+	var row    = parseInt(data[0]);
+	var column = parseInt(data[1])
+	var color  = parseInt(data[2]);
+
+	if(model.getTurn() == color)
+		model.move(row, column, color);
+}
+
+function setTitle(message)
+{
+	getElement("message").innerHTML = message;
+}
+
+function updateScore()
+{
+	getElement("blackscore").innerHTML = model.getBlackScore().toString();
+	getElement("whitescore").innerHTML = model.getWhiteScore().toString();
+}
+
+function getBestMove(color)
+{
+	if(color == EMPTY)
+		return;
+
+	var difficulty = color == BLACK ? blackMode.getMode() : whiteMode.getMode();
+
+	if(difficulty == "human")
+		return;
+
+	killWorker();
+	worker = new Worker("js/ComputerPlayer.js");
+	worker.onmessage = onWorkerMessage;
+	worker.postMessage(difficulty + ";" + color + ";" + model.getBoard().serialize());
+}
+
+function killWorker()
+{
+	if(worker != undefined)
+	{
+		worker.terminate();
+		worker = undefined;
+	}
+}
+
+</script>
+</head>
+<body>
+<header class=title>
+<h1>HTML5 Reversi</h1>
+</header>
+<header class=status>
+<section><h2 id=message>Game not started.</h2></section>
+<p class="score black">Black <span id=blackscore>0</span></p>
+<p class="score white">White <span id=whitescore>0</span></p>
+</header>
+<section class=game><canvas id=gameboard width=300 height=300></canvas></section>
+<footer>
+<section class=config id=blackselector></section>
+<section class=config id=whiteselector></section>
+<section>
+<button id=newgame onclick="model.newGame()">New Game</button>
+</section>
+</footer>
+</body>
+</html>
