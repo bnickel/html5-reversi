@@ -252,11 +252,11 @@ GameView.prototype.onGameOver = function(sender, event)
 		var cm1 = i % 8;
 		var rm1 = (i - cm1) / 8;
 		if(i < black)
-			changes.push(new Change(rm1 + 1, cm1 + 1, BLACK));
+			changes.push(new Change(rm1 + 1, cm1 + 1, PieceState.BLACK));
 		else if(64 - i <= white)
-			changes.push(new Change(rm1 + 1, cm1 + 1, WHITE));
+			changes.push(new Change(rm1 + 1, cm1 + 1, PieceState.WHITE));
 		else
-			changes.push(new Change(rm1 + 1, cm1 + 1, EMPTY));
+			changes.push(new Change(rm1 + 1, cm1 + 1, PieceState.EMPTY));
 	}
 	
 	this.getModel().setPieces(changes);
@@ -270,10 +270,10 @@ GameView.Piece = function(gameView, row, column)
 	this.gameView = gameView;
 	this.row = row;
 	this.column = column;
-	this.oldColor = EMPTY;
-	this.oldCore = EMPTY;	
-	this.color = EMPTY;
-	this.core = EMPTY;	
+	this.oldColor = PieceState.EMPTY;
+	this.oldCore = PieceState.EMPTY;	
+	this.color = PieceState.EMPTY;
+	this.core = PieceState.EMPTY;	
 	this.tick = 0;
 }
 
@@ -347,9 +347,9 @@ GameView.Piece.prototype.refresh = function()
 
 GameView.Piece.prototype.getFill = function(color)
 {
-	if(color == BLACK)
+	if(color == PieceState.BLACK)
 		return "black";
-	else if(color == WHITE)
+	else if(color == PieceState.WHITE)
 		return "white";
 	else return this.gameView.getBackgroundStyle();
 }
@@ -362,7 +362,7 @@ GameView.Piece.prototype.draw = function(ctx)
 	var color = this.getFill(this.isHalfwayFlipped() ? this.color : this.oldColor);
 	var core = this.getFill(this.isHalfwayFlipped() ? this.core  : this.oldCore );
 	
-	ctx.fillStyle = this.getFill(EMPTY);
+	ctx.fillStyle = this.getFill(PieceState.EMPTY);
 	ctx.fillRect(-50, -50, 100, 100);
 
 	ctx.moveTo(0, 0);

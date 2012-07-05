@@ -115,14 +115,14 @@ ReversiGameModel.prototype.getBestMove = function(ai, color, depth, alpha, beta)
 				testMove.rank += ai.forfeitWeight * forfeit;
 
 			// Adjust the alpha and beta values, if necessary.
-			if (color == WHITE && testMove.rank > beta)
+			if (color == PieceState.WHITE && testMove.rank > beta)
 				beta = testMove.rank;
-			if (color == BLACK && testMove.rank < alpha)
+			if (color == PieceState.BLACK && testMove.rank < alpha)
 				alpha = testMove.rank;
 		}
 
 		// Perform a cutoff if the rank is outside tha alpha-beta range.
-		if (color == WHITE && testMove.rank > alpha)
+		if (color == PieceState.WHITE && testMove.rank > alpha)
 		{
 			testMove.rank = alpha;
 			return testMove;

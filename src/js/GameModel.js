@@ -1,7 +1,7 @@
 function GameModel(rows, columns)
 {
-	this.__board = new Board(rows, columns, EMPTY);
-	this.__turn = EMPTY;
+	this.__board = new Board(rows, columns, PieceState.EMPTY);
+	this.__turn = PieceState.EMPTY;
 	this.__blackIsInteractive = true;
 	this.__whiteIsInteractive = true;
 	this.__isGameOver = true;
@@ -13,7 +13,7 @@ __enableEvents(GameModel);
 
 GameModel.prototype.newGame = function(firstTurn)
 {
-	this.__turn = firstTurn != undefined ? firstTurn : BLACK;
+	this.__turn = firstTurn != undefined ? firstTurn : PieceState.BLACK;
 	this.setGameOver(false);
 }
 
@@ -97,7 +97,7 @@ GameModel.prototype.setGameOver = function(value)
 	
 	if(newValue)
 	{
-		this.setTurn(EMPTY);
+		this.setTurn(PieceState.EMPTY);
 		this.onGameOver({});
 	}
 }
@@ -106,10 +106,10 @@ GameModel.prototype.setGameOver = function(value)
 
 GameModel.prototype.isInteractive = function()
 {
-	if(this.getTurn() == BLACK)
+	if(this.getTurn() == PieceState.BLACK)
 		return this.__blackIsInteractive;
 	
-	if(this.getTurn() == WHITE)
+	if(this.getTurn() == PieceState.WHITE)
 		return this.__whiteIsInteractive;
 	
 	return false;
@@ -119,10 +119,10 @@ GameModel.prototype.setInteractive = function(color, value)
 {
 	var oldInteractive = this.isInteractive();
 	
-	if(color == BLACK)
+	if(color == PieceState.BLACK)
 		this.__blackIsInteractive = value ? true : false;
 	
-	if(color == WHITE)
+	if(color == PieceState.WHITE)
 		this.__whiteIsInteractive = value ? true : false;
 
 	var newInteractive = this.isInteractive();
@@ -135,12 +135,12 @@ GameModel.prototype.setInteractive = function(color, value)
 
 GameModel.prototype.getRows = function()
 {
-	return this.__board.rows;
+	return this.__board.getRows();
 }
 
 GameModel.prototype.getColumns = function()
 {
-	return this.__board.columns;
+	return this.__board.getColumns();
 }
 
 GameModel.prototype.setPieces = function(changes)

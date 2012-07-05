@@ -32,9 +32,9 @@ window.onload = function()
 function onNewGame(event)
 {
 	updateScore();
-	if(model.getTurn() == BLACK)
+	if(model.getTurn() == PieceState.BLACK)
 		setTitle("Black's Turn");
-	if(model.getTurn() == WHITE)
+	if(model.getTurn() == PieceState.WHITE)
 		setTitle("White's Turn");
 }
 
@@ -45,15 +45,15 @@ function onMove(event)
 
 function onTurnChanged(event)
 {
-	if(event.newTurn == EMPTY)
+	if(event.newTurn == PieceState.EMPTY)
 		setTitle("No Moves");
-	else if(event.newTurn == BLACK && event.oldTurn == BLACK)
+	else if(event.newTurn == PieceState.BLACK && event.oldTurn == PieceState.BLACK)
 		setTitle("Black's Turn<br><small>(Again)</small>");
-	else if(event.newTurn == WHITE && event.oldTurn == WHITE)
+	else if(event.newTurn == PieceState.WHITE && event.oldTurn == PieceState.WHITE)
 		setTitle("White's Turn<br><small>(Again)</small>");
-	else if(event.newTurn == BLACK)
+	else if(event.newTurn == PieceState.BLACK)
 		setTitle("Black's Turn");
-	else if(event.newTurn == WHITE)
+	else if(event.newTurn == PieceState.WHITE)
 		setTitle("White's Turn");
 
 	getBestMove(event.newTurn);
@@ -67,20 +67,20 @@ function onGameOver(event)
 
 function onBlackModeChanged(event)
 {
-	model.setInteractive(BLACK, event.newMode == "human");
+	model.setInteractive(PieceState.BLACK, event.newMode == "human");
 
 	killWorker();
 
 	if(event.newMode == "human")
 		return;
 
-	if(model.getTurn() == BLACK)
-		getBestMove(BLACK);
+	if(model.getTurn() == PieceState.BLACK)
+		getBestMove(PieceState.BLACK);
 }
 
 function onWhiteModeChanged(event)
 {
-	model.setInteractive(WHITE, event.newMode == "human");
+	model.setInteractive(PieceState.WHITE, event.newMode == "human");
 
 	if(worker != undefined)
 		worker.terminate();
@@ -88,8 +88,8 @@ function onWhiteModeChanged(event)
 	if(event.newMode == "human")
 		return;
 
-	if(model.getTurn() == WHITE)
-		getBestMove(WHITE);
+	if(model.getTurn() == PieceState.WHITE)
+		getBestMove(PieceState.WHITE);
 }
 
 function onWorkerMessage(event)
@@ -116,10 +116,10 @@ function updateScore()
 
 function getBestMove(color)
 {
-	if(color == EMPTY)
+	if(color == PieceState.EMPTY)
 		return;
 
-	var difficulty = color == BLACK ? blackMode.getMode() : whiteMode.getMode();
+	var difficulty = color == PieceState.BLACK ? blackMode.getMode() : whiteMode.getMode();
 
 	if(difficulty == "human")
 		return;

@@ -30,11 +30,11 @@ ReversiGameModel.prototype.newGame = function(firstTurn)
 		for(var c = 1; c <= columns; c ++)
 		{
 			if((r == r1 && c == c1) || (r == r2 && c == c2))
-				pieces.push(new Change(r, c, BLACK));
+				pieces.push(new Change(r, c, PieceState.BLACK));
 			else if((r == r1 && c == c2) || (r == r2 && c == c1))
-				pieces.push(new Change(r, c, WHITE));
+				pieces.push(new Change(r, c, PieceState.WHITE));
 			else
-				pieces.push(new Change(r, c, EMPTY));
+				pieces.push(new Change(r, c, PieceState.EMPTY));
 		}
 	
 	this.setPieces(pieces);
@@ -67,7 +67,7 @@ ReversiGameModel.prototype.move = function(row, column, color)
 
 ReversiGameModel.prototype.canMove = function(row, column, color)
 {
-	if(this.__board.getPiece(row, column) != EMPTY)
+	if(this.__board.getPiece(row, column) != PieceState.EMPTY)
 		return false;
 	
 	return this.canMoveDirection(row, column, color, -1, -1) ||
@@ -89,7 +89,7 @@ ReversiGameModel.prototype.canMoveDirection = function(row, column, color, dr, d
 			return false;
 		
 		var existing = this.__board.getPiece(row, column);
-		if(existing == EMPTY)
+		if(existing == PieceState.EMPTY)
 			return false;
 		
 		if(existing == color)
@@ -101,7 +101,7 @@ ReversiGameModel.prototype.canMoveDirection = function(row, column, color, dr, d
 
 ReversiGameModel.prototype.getMoveChanges = function(row, column, color)
 {
-	if(this.__board.getPiece(row, column) != EMPTY)
+	if(this.__board.getPiece(row, column) != PieceState.EMPTY)
 		return [];
 	
 	var changes = [];
@@ -130,7 +130,7 @@ ReversiGameModel.prototype.getDirectionChanges = function(row, column, color, dr
 			return;
 		
 		var existing = this.__board.getPiece(row, column);
-		if(existing == EMPTY)
+		if(existing == PieceState.EMPTY)
 			return;
 		
 		if(existing == color)
@@ -209,7 +209,7 @@ ReversiGameModel.prototype.updateStats = function()
 			
 			for(var r = 1; r <= rows; r ++)
 				for(var c = 1; c <= columns; c ++)
-					if (this.getPiece(r, c) != EMPTY && !this.getSafeDisc(r, c) && !this.isOutflankable(r, c))
+					if (this.getPiece(r, c) != PieceState.EMPTY && !this.getSafeDisc(r, c) && !this.isOutflankable(r, c))
 					{
 						this.setSafeDisc(r, c, true);
 						statusChanged = true;
@@ -223,7 +223,7 @@ ReversiGameModel.prototype.updateStats = function()
 			var color = this.getPiece(r, c);
 			var isFrontier = this.__useComplexStats && this.isFrontier(r, c);
 		
-			if(color == BLACK)
+			if(color == PieceState.BLACK)
 			{
 				this.__blackScore ++;
 				if(isFrontier)
@@ -231,7 +231,7 @@ ReversiGameModel.prototype.updateStats = function()
 				if(this.getSafeDisc(r, c))
 					this.__blackSafeCount++;
 			}
-			else if(color == WHITE)
+			else if(color == PieceState.WHITE)
 			{
 				this.__whiteScore ++;
 				if(isFrontier)
@@ -276,7 +276,7 @@ ReversiGameModel.prototype.isUnsafe = function(row, column, color)
 
 ReversiGameModel.prototype.isEmpty = function(row, column)
 {
-	return this.getPiece(row, column) == EMPTY;
+	return this.getPiece(row, column) == PieceState.EMPTY;
 }
 
 ReversiGameModel.prototype.checkSafety = function(row, column, dr, dc, color)
