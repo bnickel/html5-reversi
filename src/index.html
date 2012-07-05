@@ -15,7 +15,7 @@ var model, view, worker, blackMode, whiteMode;
 window.onload = function()
 {
 	model = new ReversiGameModel(8, 8);
-	view  = new GameView(getElement("gameboard"), model);
+	view  = new GameView(getElement("game-board"), model);
 
 	model.addEventListener("newgame", onNewGame, false);
 	model.addEventListener("gameover", onGameOver, false);
@@ -23,8 +23,8 @@ window.onload = function()
 	model.addEventListener("move", onMove, false);
 	model.newGame();
 
-	blackMode = new PlayerSelector(getElement("blackselector"), "Black Player");
-	whiteMode = new PlayerSelector(getElement("whiteselector"), "White Player");
+	blackMode = new PlayerSelector('.player-selector.black', 'Black Player');
+	whiteMode = new PlayerSelector('.player-selector.white', 'White Player');
 	blackMode.addEventListener("valuechanged", onBlackModeChanged, false);
 	whiteMode.addEventListener("valuechanged", onWhiteModeChanged, false);
 }
@@ -142,21 +142,23 @@ function killWorker()
 </script>
 </head>
 <body>
-<header class=title>
-<h1>HTML5 Reversi</h1>
+<header>
+    <h1 class="title-bar">HTML5 Reversi</header>
+    <section class="status-bar">
+        <p class="message" id="message">Game not started.</p>
+        <p class="score-box black"><span id=blackscore>0</span></p>
+        <p class="score-box white"><span id=whitescore>0</span></p>
+    </section>
 </header>
-<header class=status>
-<section><h2 id=message>Game not started.</h2></section>
-<p class="score black">Black <span id=blackscore>0</span></p>
-<p class="score white">White <span id=whitescore>0</span></p>
-</header>
-<section class=game><canvas id=gameboard width=300 height=300></canvas></section>
-<footer>
-<section class=config id=blackselector></section>
-<section class=config id=whiteselector></section>
-<section>
-<button id=newgame onclick="model.newGame()">New Game</button>
-</section>
+
+<canvas id="game-board" width="320" height="320"></canvas>
+
+<footer class="controls-bar">
+    <section class="player-selector black" id=blackselector></section>
+    <section class="player-selector white" id=whiteselector></section>
+    <section>
+        <button class="full-width" onclick="model.newGame()">New Game</button>
+    </section>
 </footer>
 </body>
 </html>

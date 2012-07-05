@@ -1,53 +1,91 @@
-function PlayerSelector(container, player)
-{
-	this.__buttons = [];
-	this.__mode = "human";
-	
-	var modes = ["Human", "Easy", "Medium", "Hard", "Expert"];
-	container.__addElem("h2", player);
-	var list = container.__addElem("table");
-	this.__player = player;
-	var row = list.__addElem("tr");
-	var id = __newID();
-	for(var i = 0; i < modes.length; i ++)
-	{
-		var item = row.__addElem("td");
-		var button = item.__addElem("button", modes[i]);
-		button.__value = modes[i].toLowerCase();
-		button.addEventHandler("click", this, "onClick", false);
-		this.__buttons.push(button);
-		
-		if(i == 0)
-			button.className = "checked";
-	}
+var PlayerMode = {
+        HUMAN:  0,
+        EASY:   1,
+        MEDIUM: 2,
+        HARD:   3,
+        EXPERT: 4,
+        
+        count:  5
+    };
+    
+function PlayerSelector(selector, player) {
+    
+    var BUTTONS = [
+            'Human',
+            'Easy',
+            'Medium',
+            'Hard',
+            'Expert'
+        ];
+    
+    var self = this;
+    
+	self.__mode = PlayerMode.HUMAN;
+    
+    var container = document.querySelector(selector);
+    
+    var header = document.createElement('h2');
+    header.textContent = player;
+    
+    var list = document.createElement('ul');
+    
+    BUTTONS.forEach(function(name, mode) {
+            
+            var listItem = document.createElement('li');
+            var button = document.createElement('button');
+            
+            button.textContent = name;
+            
+            button.addEventListener('click', function() {
+                    self.setMode(mode);
+                });
+            
+            if(mode == self.__mode) {
+                button.className = 'checked';
+            }
+            
+            listItem.appendChild(button);
+            list.appendChild(listItem);
+        });
+    
+    container.appendChild(header);
+    container.appendChild(list);
+    
+    self.__buttons = list.querySelectorAll('button');
 }
 
-__enableEvents(PlayerSelector);
+PlayerSelector.prototype = {
+        
+        /**
+         * Gets the current mode of the 
+         */
+        getMode: function() {
+                return this.__mode;
+            },
+        
+        setMode: function(mode) {
+                
+                var oldMode = this.__mode;
+                
+                if(oldMode == mode) {
+                    return;
+                }
+                
+                this.__mode = mode;
+                
+                Array.prototype.forEach.call(this.__buttons, function(button, buttonMode) {
+                        button.className = (buttonMode == mode) ? 'checked' : '';
+                    });
+                
+                this.onModeChanged({
+                        newMode: mode,
+                        oldMode: oldMode
+                    });
+            },
+        
+        onModeChanged: function(eventArgs) {
+                this.evokeEvent('modechanged', eventArgs);
+            }
+    };
 
-PlayerSelector.prototype.getMode = function()
-{
-	return this.__mode;
-}
-
-PlayerSelector.prototype.onClick = function(sender, eventArgs)
-{
-	var value = sender.__value;
-	for(var i = 0; i < this.__buttons.length; i++)
-		if(this.__buttons[i].__value == value)
-			this.__buttons[i].className = "checked";
-		else
-			this.__buttons[i].className = "";
-	
-	if(value == this.__mode)
-		return;
-	
-	var oldValue = this.__mode;
-	this.__mode = value;
-	
-	this.onValueChanged({newMode: this.__mode, oldMode: oldValue});
-}
-
-PlayerSelector.prototype.onValueChanged = function(eventArgs)
-{
-	this.evokeEvent("valuechanged", eventArgs);
-}
+PlayerSelector.enableEventsOnPrototype();
