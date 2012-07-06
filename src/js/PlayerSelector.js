@@ -20,7 +20,7 @@ function PlayerSelector(selector, player) {
     
     var self = this;
     
-	self.__mode = PlayerMode.HUMAN;
+    self.__mode = PlayerMode.HUMAN;
     
     var container = document.querySelector(selector);
     
@@ -54,38 +54,32 @@ function PlayerSelector(selector, player) {
     self.__buttons = list.querySelectorAll('button');
 }
 
-PlayerSelector.prototype = {
+PlayerSelector.prototype.getMode = function() {
+    return this.__mode;
+};
         
-        /**
-         * Gets the current mode of the 
-         */
-        getMode: function() {
-                return this.__mode;
-            },
+PlayerSelector.prototype.setMode = function(mode) {
+    
+    var oldMode = this.__mode;
+    
+    if(oldMode == mode) {
+        return;
+    }
+    
+    this.__mode = mode;
+    
+    Array.prototype.forEach.call(this.__buttons, function(button, buttonMode) {
+            button.className = (buttonMode == mode) ? 'checked' : '';
+        });
+    
+    this.onModeChanged({
+            newMode: mode,
+            oldMode: oldMode
+        });
+};
         
-        setMode: function(mode) {
-                
-                var oldMode = this.__mode;
-                
-                if(oldMode == mode) {
-                    return;
-                }
-                
-                this.__mode = mode;
-                
-                Array.prototype.forEach.call(this.__buttons, function(button, buttonMode) {
-                        button.className = (buttonMode == mode) ? 'checked' : '';
-                    });
-                
-                this.onModeChanged({
-                        newMode: mode,
-                        oldMode: oldMode
-                    });
-            },
-        
-        onModeChanged: function(eventArgs) {
-                this.evokeEvent('modechanged', eventArgs);
-            }
-    };
-
 PlayerSelector.enableEventsOnPrototype();
+
+PlayerSelector.prototype.onModeChanged = function(eventArgs) {
+    this.evokeEvent('modechanged', eventArgs);
+};

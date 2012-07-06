@@ -15,7 +15,7 @@ var model, view, worker, blackMode, whiteMode;
 window.onload = function()
 {
 	model = new ReversiGameModel(8, 8);
-	view  = new GameView(getElement("game-board"), model);
+	view  = new GameView('#game-board', model);
 
 	model.addEventListener("newgame", onNewGame, false);
 	model.addEventListener("gameover", onGameOver, false);
@@ -105,13 +105,13 @@ function onWorkerMessage(event)
 
 function setTitle(message)
 {
-	getElement("message").innerHTML = message;
+	document.querySelector('#message').innerHTML = message;
 }
 
 function updateScore()
 {
-	getElement("blackscore").innerHTML = model.getBlackScore().toString();
-	getElement("whitescore").innerHTML = model.getWhiteScore().toString();
+	document.querySelector('.score-box.black').textContent = model.getBlackScore().toString();
+	document.querySelector('.score-box.black').textContent = model.getWhiteScore().toString();
 }
 
 function getBestMove(color)

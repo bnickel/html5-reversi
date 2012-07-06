@@ -10,30 +10,33 @@ function Board(rows, columns, state) {
         pieces[i] = state;
     }
     
-	this.__rows    = rows;
-	this.__columns = columns;
+    this.__rows    = rows;
+    this.__columns = columns;
     this.__pieces  = pieces;
 }
 
-Board.prototype = {
-        getRows: function() { return this.__rows; },
-        getColumns: function() { return this.__columns; },
-    };
+Board.prototype.getRows = function() {
+    return this.__rows;
+};
+
+Board.prototype.getColumns = function() {
+    return this.__columns;
+};
 
 Board.prototype.clone = function() {
-	var output = new Board(0, 0);
-	output.__rows    = this.__rows;
-	output.__columns = this.__columns;
+    var output = new Board(0, 0);
+    output.__rows    = this.__rows;
+    output.__columns = this.__columns;
     output.__pieces  = this.__pieces.slice(0);
-	return output;
+    return output;
 }
 
 Board.prototype.getPiece = function(row, column) {
-	return this.__pieces[this.__rows * (row - 1) + (column - 1)];
+    return this.__pieces[this.__rows * (row - 1) + (column - 1)];
 };
 
 Board.prototype.setPiece = function(row, column, color) {
-	return this.__pieces[this.__rows * (row - 1) + (column - 1)] = color;
+    return this.__pieces[this.__rows * (row - 1) + (column - 1)] = color;
 };
 
 Board.prototype.setPieces = function(changes) {
@@ -43,8 +46,8 @@ Board.prototype.setPieces = function(changes) {
 };
 
 Board.prototype.serialize = function() {
-	return this.__rows + ',' + this.__columns + ',' + this.__pieces.join(',');
-}
+    return this.__rows + ',' + this.__columns + ',' + this.__pieces.join(',');
+};
 
 Board.deserialize = function(data) {
     var items = data.split(',').map(function(n){return Number(n)});
@@ -53,10 +56,10 @@ Board.deserialize = function(data) {
     output.__columns = items[1];
     output.__pieces  = items.slice(2);
     return output;
-}
+};
 
 function Change(row, column, color) {
-	this.row = row;
-	this.column = column;
-	this.color = color;
-}
+    this.row = row;
+    this.column = column;
+    this.color = color;
+};
