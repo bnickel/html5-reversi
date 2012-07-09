@@ -56,89 +56,169 @@ function GameView (canvasSelector, model) {
 
 GameView.enableEventsOnPrototype();
 
+/**
+ * @private
+ */
 GameView.prototype.__borderWidth = 2;
+
+/**
+ * @private
+ */
 GameView.prototype.__borderStyle = "rgb(0,113,0)";
+
+/**
+ * @private
+ */
 GameView.prototype.__backgroundStyle = "rgb(0,92,0)";
 
+/**
+ * Gets the canvas stroke style used for rendering the border between board sections.
+ * 
+ * @returns {object}
+ */
 GameView.prototype.getBorderStyle = function() {
     return this.__borderStyle;
 };
 
+/**
+ * Gets the pixel width of the border between board sections.
+ * 
+ * @returns {number}
+ */
 GameView.prototype.getBorderWidth = function() {
     return this.__borderWidth;
 };
 
+/**
+ * Gets the canvas fill style used for rendering the game's background.
+ * 
+ * @returns {Object}
+ */
 GameView.prototype.getBackgroundStyle = function() {
     return this.__backgroundStyle;
 };
 
+/**
+ * Gets the canvas the game view is being rendered on.
+ * 
+ * @returns {CanvasElement}
+ */
 GameView.prototype.getCanvasElement = function() {
     return this.__canvasElement;
 };
 
+/**
+ * Gets the drawing context used for rendering the game view on the canvas.
+ * 
+ * @returns {CanvasRenderingContext2D}
+ * @private
+ */
 GameView.prototype.getDrawingContext = function() {
     return this.getCanvasElement().getContext("2d");
 };
 
+/**
+ * Gets the game model.
+ *
+ * @returns {Model} The game model driving the view.
+ */
 GameView.prototype.getModel = function() {
     return this.__model;
 };
 
+/**
+ * Gets the number of rows in the game.
+ *
+ * @returns {number}
+ */
 GameView.prototype.getRows = function() {
     return this.__model.getRows();
 };
 
+/**
+ * Gets the number of columns in the game.
+ *
+ * @returns {number}
+ */
 GameView.prototype.getColumns = function() {
     return this.__model.getColumns();
 };
 
+/**
+ * Gets the width of the canvas element rendering the {GameView}.
+ *
+ * @returns {number}
+ */
 GameView.prototype.getWidth = function() {
     return this.__canvasElement.width;
 };
 
+/**
+ * Gets the height of the canvas element rendering the {GameView}.
+ *
+ * @returns {number}
+ */
 GameView.prototype.getHeight = function() {
     return this.__canvasElement.height;
+};
+
+/**
+ * Gets the metrics for the internal game area to avoid multiple lookups.
+ *
+ * @param {function(number border, number offset, number width, number height, number rows,
+ * number columns)} callback A callback to provide the metrics to.  The callback will be
+ * executed synchronously.
+ * @private
+ */
+GameView.prototype.getMetrics = function (callback) {
+    var border = this.getBorderWidth();
+    var offset = Math.ceil(border / 2);
+    var width  = this.getWidth() - border;
+    var height = this.getHeight() - border;
+    var rows = this.getRows();
+    var columns = this.getColumns();
+    
+    callback.call(this, border, offset, width, height, rows, columns);
 };
 
 /**
  * Draws the game board background.
  * 
  * @param {CanvasRenderingContext2D} [ctx] The context to draw the background on.
+ * @private
  */
 GameView.prototype.drawBackground = function (ctx) {
-    // TODO: This is horribly repetative.  Find a smart way to consolidate.
-    var b = this.getBorderWidth();
-    var o = Math.ceil(b / 2);
-    var w = this.getWidth() - b;
-    var h = this.getHeight() - b;
-    var r = this.getRows();
-    var c = this.getColumns();
     
-    ctx = ctx || this.getDrawingContext();
-    
-    ctx.globalCompositeOperation = "source-over";
-    
-    ctx.fillStyle = this.getBackgroundStyle();
-    ctx.fillRect(o, o, w, h);
-
-    ctx.strokeStyle = this.getBorderStyle();
-    ctx.lineWidth = b;
-    
-    // Draw horizontal dividing lines.
-    for (var i = 0; i <= r; i ++) {
-        var y = Math.floor(h * (i / r) + o) - Math.mod0(b / 2);
-        ctx.moveTo(0, y);
-        ctx.lineTo(w + b, y);
-    }
-    
-    // Draw vertical dividing lines.
-    for (var i = 0; i <= c; i ++) {
-        var x = Math.floor(w * (i / c) + o) - Math.mod0(b / 2);
-        ctx.moveTo(x, 0);
-        ctx.lineTo(x, h + b);
-    }
-    
-    ctx.stroke();
+    this.getMetrics(function (border, offset, width, height, rows, columns) {
+        
+        ctx = ctx || this.getDrawingContext();
+        ctx.globalCompositeOperation = "source-over";
+        
+        // Fill background
+        ctx.fillStyle = this.getBackgroundStyle();
+        ctx.fillRect(offset, offset, width, height);
+        
+        ctx.strokeStyle = this.getBorderStyle();
+        ctx.lineWidth = border;
+        
+        var index, position;
+        
+        // Draw horizontal dividing lines.
+        for (index = 0; index <= rows; index ++) {
+            position = Math.floor(height * (index / rows) + offset) - Math.mod0(border / 2);
+            ctx.moveTo(0, position);
+            ctx.lineTo(width + border, position);
+        }
+        
+        // Draw vertical dividing lines.
+        for (index = 0; index <= columns; index ++) {
+            position = Math.floor(width * (index / columns) + offset) - Math.mod0(border / 2);
+            ctx.moveTo(position, 0);
+            ctx.lineTo(position, height + border);
+        }
+        
+        ctx.stroke();
+    });
 };
 
 /**
@@ -146,34 +226,33 @@ GameView.prototype.drawBackground = function (ctx) {
  * 
  * @param {number} row
  * @param {number} column
+ * @private
  */
 GameView.prototype.getPieceArea = function (row, column) {
-    // TODO: This is horribly repetative.  Find a smart way to consolidate.
-    var b = this.getBorderWidth();
-    var o = Math.ceil(b / 2);
-    var w = this.getWidth() - b;
-    var h = this.getHeight() - b;
-    var r = this.getRows();
-    var c = this.getColumns();
     
-    var left = b + w * ((column - 1) / c);
-    var top = b + h * ((row - 1) / r);
-    var width = w / c - b;
-    var height = h / r - b;
-    
-    if (width > height) {
-        left += (width - height) / 2;
-        width = height;
-    } else {
-        top += (height - width) / 2;
-        height = width;
-    }
+    var pieceTop, pieceLeft, pieceWidth, pieceHeight;
+
+    this.getMetrics(function (border, offset, width, height, rows, columns) {
+
+        pieceLeft   = border + width  * ((column - 1) / columns);
+        pieceTop    = border + height * ((row    - 1) / rows);
+        pieceWidth  = width  / columns - border;
+        pieceHeight = height / rows    - border;
+        
+        if (pieceWidth > pieceHeight) {
+            pieceLeft += (pieceWidth - pieceHeight) / 2;
+            pieceWidth = pieceHeight;
+        } else {
+            pieceTop += (pieceHeight - pieceWidth) / 2;
+            pieceHeight = pieceWidth;
+        }
+    });
     
     return {
-            x: Math.floor(left),
-            y: Math.floor(top),
-            w: Math.floor(width),
-            h: Math.floor(height)
+            x: Math.floor(pieceLeft),
+            y: Math.floor(pieceTop),
+            w: Math.floor(pieceWidth),
+            h: Math.floor(pieceHeight)
         };
 };
 
@@ -182,22 +261,24 @@ GameView.prototype.getPieceArea = function (row, column) {
  *
  * @param {number} x A pixel distance from the left of the canvas element.
  * @param {number} y A pixel distance from the top of the canvas element.
+ * @private
  */
 GameView.prototype.getPositionFromXY = function (x, y) {
-    // TODO: This is horribly repetative.  Find a smart way to consolidate.
-    var b = this.getBorderWidth();
-    var o = Math.ceil(b / 2);
-    var w = this.getWidth() - b;
-    var h = this.getHeight() - b;
-    var r = this.getRows();
-    var c = this.getColumns();
+    
+    var row, column;
 
-    var column = Math.floor((x - o) / (w / c)) + 1;
-    var row    = Math.floor((y - o) / (h / r)) + 1;
+    this.getMetrics(function (border, offset, width, height, rows, columns) {
+        
+        row    = Math.floor((y - offset) / (height / rows   )) + 1;
+        column = Math.floor((x - offset) / (width  / columns)) + 1;
+        
+        row    = Math.min(Math.max(1, row), rows),
+        column = Math.min(Math.max(1, column), columns)
+    });
     
     return {
-            row:    Math.min(Math.max(1, row), r),
-            column: Math.min(Math.max(1, column), c)
+            row: row,
+            column: column
         };
 };
 
@@ -205,6 +286,7 @@ GameView.prototype.getPositionFromXY = function (x, y) {
  * Adds a piece to the drawing queue and starts the redraw process if necessary.
  * 
  * @param {GameView.Piece} piece A piece to animate.
+ * @private
  */
 GameView.prototype.queueDrawing = function (piece) {
     var self = this;
@@ -214,6 +296,7 @@ GameView.prototype.queueDrawing = function (piece) {
 
 /**
  * Draws all queued changes.  If not changes are queued, the redraw interval is cleared.
+ * @private
  */
 GameView.prototype.draw = function () {
     var ctx = this.getDrawingContext();
@@ -252,6 +335,7 @@ GameView.prototype.draw = function () {
 
 /**
  * Forces a visual update to every piece on the board.
+ * @private
  */
 GameView.prototype.updateDisplay = function () {
     
@@ -268,6 +352,7 @@ GameView.prototype.updateDisplay = function () {
  * Responds to a click on the game board by attempting a move with the current player.
  *
  * @param {MouseEvent} event The mouse event triggering the method.
+ * @private
  */
 GameView.prototype.onClick = function (event) {
     
@@ -283,6 +368,7 @@ GameView.prototype.onClick = function (event) {
  * Responds to a mouse move event by displaying a simulated move.
  *
  * @param {MouseEvent} event The mouse event triggering the method.
+ * @private
  */
 GameView.prototype.onMouseMove = function (event) {
     var x = event.offsetX == undefined ? event.layerX : event.offsetX;
@@ -306,6 +392,7 @@ GameView.prototype.onMouseMove = function (event) {
  * Responds to a mouse out event by clearing the simulation.
  *
  * @param {MouseEvent} event The mouse event triggering the method.
+ * @private
  */
 GameView.prototype.onMouseOut = function(event) {
     if(this.__hoverPosition) {
@@ -318,6 +405,7 @@ GameView.prototype.onMouseOut = function(event) {
  * Responds to an interactivity change by updating the style of the canvas.
  * 
  * @param {Object} event The event triggering the method.
+ * @private
  */
 GameView.prototype.onInteractiveChanged = function (event) {
     var element = this.getCanvasElement();
@@ -336,6 +424,7 @@ GameView.prototype.onInteractiveChanged = function (event) {
  * Responds to a game over event by displaying the game over screen.
  * 
  * @param {Object} event The event triggering the method.
+ * @private
  */
 GameView.prototype.onGameOver = function (event) {
     this.getCanvasElement().className = 'gameover';
@@ -369,6 +458,7 @@ GameView.prototype.onGameOver = function (event) {
  * @param {GameView} gameView The game view the piece belongs on.
  * @param {number} row The row the piece is at.
  * @param {number} column The column the piece is at.
+ * @private
  * @class Represents a game piece.
  */
 GameView.Piece = function (gameView, row, column) {
