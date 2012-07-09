@@ -39,13 +39,20 @@ GameModel.prototype.playerCanMove = function(color) {
 GameModel.prototype.getValidMoves = function(color) {
     
     var moves = [];
+    this.getBoard().forEachPosition(function (value, row, column) {
+        if (this.canMove(row, column, color)) {
+            moves.push(new Change(row, column, color));
+        }
+    }, this);
+    
+    /*
     for(var row = this.getRows(); row > 0; row --) {
         for(var column = this.getColumns(); column > 0; column--) {
             if(this.canMove(row, column, color)) {
                 moves.push(new Change(r, c, color));
             }
         }
-    }
+    }*/
     
     return moves;
 }
