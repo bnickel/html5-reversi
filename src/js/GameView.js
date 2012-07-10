@@ -7,16 +7,13 @@ function GameView (canvasSelector, model) {
     var self = this;
     var canvasElement = document.querySelector(canvasSelector);
     
-    this.__canvasElement  = canvasElement;
-    this.__model          = model;
-    this.__visualPieces   = [];
-    this.__redrawInterval = undefined;
-    this.__redrawList     = [];
-    this.__hoverPosition  = undefined;
+    this.canvasElement      = canvasElement;
+    this.model              = model;
+    this.pieces             = [];
+    this.redrawingPieceList = [];
     
-    model.getBoard().forEachPosition(function(value, row, column) {
-        var rowPieces = this.__visualPieces[row - 1] || (this.__visualPieces[row - 1] = []);
-        rowPieces[column - 1] = new GameView.Piece(this, row, column);
+    model.getBoard().forEachPosition(function(value, row, column, index) {
+        this.pieces[index] = new GameView.Piece(this, row, column);
     }, this);
     
     this.drawBackground();
@@ -57,54 +54,96 @@ function GameView (canvasSelector, model) {
 GameView.enableEventsOnPrototype();
 
 /**
+ * The pixel width of the border.  On update, the whole board would need to be redrawn.
+ * @type {number}
  * @private
  */
-GameView.prototype.__borderWidth = 2;
+GameView.prototype.borderWidth = 2;
 
 /**
+ * The stroke style for rendering the border between board sections.
+ * @type {string}
  * @private
  */
-GameView.prototype.__borderStyle = "rgb(0,113,0)";
+GameView.prototype.borderStyle = 'rgb(0, 113, 0)';
 
 /**
+ * The fill style used for rendering the game board's background.
+ * @type {string}
  * @private
  */
-GameView.prototype.__backgroundStyle = "rgb(0,92,0)";
+GameView.prototype.backgroundStyle = 'rgb(0, 92, 0)';
 
 /**
- * Gets the canvas stroke style used for rendering the border between board sections.
- * 
+ * The ID for the redraw interval.
+ * @type {number}
+ * @private
+ */
+GameView.prototype.redrawIntervalId = 0;
+
+/**
+ * The canvas the game view is being rendered on.
+ * @type {CanvasElement}
+ */
+GameView.prototype.canvasElement = null;
+
+/**
+ * The canvas the game view is being rendered on.
+ * @type {Model}
+ */
+GameView.prototype.model = null;
+
+/**
+ * The visual pieces that make up the model.
+ * @type {Array[GameView.Piece]}
+ * @private
+ */
+GameView.prototype.pieces = null;
+
+/**
+ * The visual pieces that make up the model.
+ * @type {Array[GameView.Piece]}
+ * @private
+ */
+GameView.prototype.redrawingPieceList = null;
+
+/**
+ * The current hover position
+ * @type {Object}
+ * @private
+ */
+GameView.prototype.hoverPosition = null;
+
+/**
  * @returns {object}
+ * @depreciated
  */
-GameView.prototype.getBorderStyle = function() {
-    return this.__borderStyle;
+GameView.prototype.getBorderStyle = function () {
+    return this.borderStyle;
 };
 
 /**
- * Gets the pixel width of the border between board sections.
- * 
  * @returns {number}
+ * @depreciated
  */
-GameView.prototype.getBorderWidth = function() {
-    return this.__borderWidth;
+GameView.prototype.getBorderWidth = function () {
+    return this.borderWidth;
 };
 
 /**
- * Gets the canvas fill style used for rendering the game's background.
- * 
  * @returns {Object}
+ * @depreciated
  */
-GameView.prototype.getBackgroundStyle = function() {
-    return this.__backgroundStyle;
+GameView.prototype.getBackgroundStyle = function () {
+    return this.backgroundStyle;
 };
 
 /**
- * Gets the canvas the game view is being rendered on.
- * 
  * @returns {CanvasElement}
+ * @depreciated
  */
 GameView.prototype.getCanvasElement = function() {
-    return this.__canvasElement;
+    return this.canvasElement;
 };
 
 /**
@@ -114,16 +153,15 @@ GameView.prototype.getCanvasElement = function() {
  * @private
  */
 GameView.prototype.getDrawingContext = function() {
-    return this.getCanvasElement().getContext("2d");
+    return this.canvasElement.getContext("2d");
 };
 
 /**
- * Gets the game model.
- *
  * @returns {Model} The game model driving the view.
+ * @depreciated
  */
 GameView.prototype.getModel = function() {
-    return this.__model;
+    return this.model;
 };
 
 /**
@@ -132,7 +170,7 @@ GameView.prototype.getModel = function() {
  * @returns {number}
  */
 GameView.prototype.getRows = function() {
-    return this.__model.getRows();
+    return this.model.getRows();
 };
 
 /**
@@ -141,7 +179,7 @@ GameView.prototype.getRows = function() {
  * @returns {number}
  */
 GameView.prototype.getColumns = function() {
-    return this.__model.getColumns();
+    return this.model.getColumns();
 };
 
 /**
@@ -150,7 +188,7 @@ GameView.prototype.getColumns = function() {
  * @returns {number}
  */
 GameView.prototype.getWidth = function() {
-    return this.__canvasElement.width;
+    return this.canvasElement.width;
 };
 
 /**
@@ -159,7 +197,7 @@ GameView.prototype.getWidth = function() {
  * @returns {number}
  */
 GameView.prototype.getHeight = function() {
-    return this.__canvasElement.height;
+    return this.canvasElement.height;
 };
 
 /**
@@ -171,7 +209,7 @@ GameView.prototype.getHeight = function() {
  * @private
  */
 GameView.prototype.getMetrics = function (callback) {
-    var border = this.getBorderWidth();
+    var border = this.borderWidth;
     var offset = Math.ceil(border / 2);
     var width  = this.getWidth() - border;
     var height = this.getHeight() - border;
@@ -195,10 +233,10 @@ GameView.prototype.drawBackground = function (ctx) {
         ctx.globalCompositeOperation = "source-over";
         
         // Fill background
-        ctx.fillStyle = this.getBackgroundStyle();
+        ctx.fillStyle = this.backgroundStyle;
         ctx.fillRect(offset, offset, width, height);
         
-        ctx.strokeStyle = this.getBorderStyle();
+        ctx.strokeStyle = this.borderStyle;
         ctx.lineWidth = border;
         
         var index, position;
@@ -290,8 +328,8 @@ GameView.prototype.getPositionFromXY = function (x, y) {
  */
 GameView.prototype.queueDrawing = function (piece) {
     var self = this;
-    self.__redrawList.push(piece);
-    self.__redrawInterval = this.__redrawInterval || setInterval(function () { self.draw(); }, 10);
+    self.redrawingPieceList.push(piece);
+    self.redrawIntervalId = self.redrawIntervalId || setInterval(function () { self.draw(); }, 10);
 };
 
 /**
@@ -301,7 +339,7 @@ GameView.prototype.queueDrawing = function (piece) {
 GameView.prototype.draw = function () {
     var ctx = this.getDrawingContext();
     var newList = [];
-    var oldList = this.__redrawList;
+    var oldList = this.redrawingPieceList;
     
     // Consume the redraw list one at a time, rendering the piece and moving the piece to the new
     // redraw list *if* further animation is required.
@@ -325,11 +363,11 @@ GameView.prototype.draw = function () {
     
     // Set the redraw list to the new list of animating pieces.
     // If the list is empty, stop the animation interval.
-    this.__redrawList = newList;
+    this.redrawingPieceList = newList;
     
     if (newList.length == 0) {
-        clearInterval(this.__redrawInterval);
-        delete this.__redrawInterval;
+        clearInterval(this.redrawIntervalId);
+        delete this.redrawIntervalId;
     }
 };
 
@@ -339,12 +377,12 @@ GameView.prototype.draw = function () {
  */
 GameView.prototype.updateDisplay = function () {
     
-    var model = this.getModel();
+    var model = this.model;
     
-    model.getBoard().forEachPosition(function(value, row, column) {
+    model.getBoard().forEachPosition(function(value, row, column, index) {
         var core = model.getPiece(row, column);
         var color = model.getSimulatedPiece(row, column);
-        this.__visualPieces[row - 1][column - 1].update(color, core);
+        this.pieces[index].update(color, core);
     }, this);
 };
 
@@ -356,10 +394,10 @@ GameView.prototype.updateDisplay = function () {
  */
 GameView.prototype.onClick = function (event) {
     
-    var hoverPosition = this.__hoverPosition;
+    var hoverPosition = this.hoverPosition;
     
     if (hoverPosition) {
-        var model = this.getModel();
+        var model = this.model;
         model.move(hoverPosition.row, hoverPosition.column, model.getTurn());
     }
 };
@@ -373,9 +411,9 @@ GameView.prototype.onClick = function (event) {
 GameView.prototype.onMouseMove = function (event) {
     var x = event.offsetX == undefined ? event.layerX : event.offsetX;
     var y = event.offsetY == undefined ? event.layerY : event.offsetY; 
-    var oldHoverPosition = this.__hoverPosition;
-    var newHoverPosition = this.__hoverPosition = this.getPositionFromXY(x, y);
-    var model = this.getModel();
+    var oldHoverPosition = this.hoverPosition;
+    var newHoverPosition = this.hoverPosition = this.getPositionFromXY(x, y);
+    var model = this.model;
     
     if (oldHoverPosition
             && oldHoverPosition.row    == newHoverPosition.row
@@ -395,9 +433,9 @@ GameView.prototype.onMouseMove = function (event) {
  * @private
  */
 GameView.prototype.onMouseOut = function(event) {
-    if(this.__hoverPosition) {
-        delete this.__hoverPosition;
-        this.getModel().clearSimulation();
+    if(this.hoverPosition) {
+        delete this.hoverPosition;
+        this.model.clearSimulation();
     }
 };
 
@@ -408,7 +446,7 @@ GameView.prototype.onMouseOut = function(event) {
  * @private
  */
 GameView.prototype.onInteractiveChanged = function (event) {
-    var element = this.getCanvasElement();
+    var element = this.canvasElement;
     var className = element.className;
     
     if(event.newValue) {
@@ -427,9 +465,9 @@ GameView.prototype.onInteractiveChanged = function (event) {
  * @private
  */
 GameView.prototype.onGameOver = function (event) {
-    this.getCanvasElement().className = 'gameover';
+    this.canvasElement.className = 'gameover';
     
-    var model = this.getModel();
+    var model = this.model;
     var blackCount  = model.getBlackScore();
     var whiteCount  = model.getWhiteScore();
     var totalSpaces = model.getRows() * model.getColumns();
@@ -583,7 +621,7 @@ GameView.Piece.prototype.getFill = function (color) {
         return "white";
     
     default:
-        return this.gameView.getBackgroundStyle();
+        return this.gameView.backgroundStyle;
     }
 };
 
