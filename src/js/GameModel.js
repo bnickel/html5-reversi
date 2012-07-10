@@ -37,23 +37,14 @@ GameModel.prototype.playerCanMove = function(color) {
 }
 
 GameModel.prototype.getValidMoves = function(color) {
-    
+
     var moves = [];
     this.getBoard().forEachPosition(function (value, row, column) {
         if (this.canMove(row, column, color)) {
             moves.push(new Change(row, column, color));
         }
     }, this);
-    
-    /*
-    for(var row = this.getRows(); row > 0; row --) {
-        for(var column = this.getColumns(); column > 0; column--) {
-            if(this.canMove(row, column, color)) {
-                moves.push(new Change(r, c, color));
-            }
-        }
-    }*/
-    
+
     return moves;
 }
 
@@ -68,23 +59,23 @@ GameModel.prototype.getTurn = function() {
 GameModel.prototype.setTurn = function(color) {
     var oldInteractive = this.isInteractive();
     var oldTurn = this.__turn;
-    
+
     this.__turn = color;
     var newInteractive = this.isInteractive();
-    
+
     if(oldInteractive != newInteractive) {
         this.onInteractiveChanged({
                 oldValue: oldInteractive,
                 newValue: newInteractive
             });
     }
-    
+
     this.onTurnChanged({
             oldTurn: oldTurn,
             newTurn: color,
             isInteractive: newInteractive
         });
-}
+};
 
 GameModel.prototype.isGameOver = function() {
     return this.__isGameOver;

@@ -1,7 +1,13 @@
+/**
+ * @preserve
+ * Copyright 2010-2012 Brian Nickel
+ * This source may be freely distributed under the MIT license.
+ */
+
 (function (window) {
     'use strict';
 
-    Math.mod0 = function (value) {
+    function mod0(value) {
         return value - Math.floor(value);
     };
 
@@ -24,31 +30,31 @@
         canvasElement.addEventListener('click', function (event) {
             self.onClick(event);
         }, false);
-        
+
         canvasElement.addEventListener('mousemove', function (event) {
             self.onMouseMove(event);
         }, false);
-        
+
         canvasElement.addEventListener('mouseout', function (event) {
             self.onMouseOut(event);
         }, false);
-        
+
         canvasElement.addEventListener('mousein', function (event) {
             self.onMouseMove(event);
         }, false);
-        
+
         model.addEventListener('boardchanged', function (event) {
             self.updateDisplay();
         }, false);
-        
+
         model.addEventListener('simulationchanged', function (event) {
             self.updateDisplay();
         }, false);
-        
+
         model.addEventListener('interactivechanged', function (event) {
             self.onInteractiveChanged(event);
         }, false);
-        
+
         model.addEventListener('gameover', function (event) {
             self.onGameOver(event);
         }, false);
@@ -218,7 +224,7 @@
             height  = this.getHeight() - border,
             rows    = this.getRows(),
             columns = this.getColumns();
-        
+
         callback.call(this, border, offset, width, height, rows, columns);
     };
 
@@ -229,35 +235,35 @@
      * @private
      */
     GameView.prototype.drawBackground = function (ctx) {
-        
+
         this.getMetrics(function (border, offset, width, height, rows, columns) {
-            
+
             ctx = ctx || this.getDrawingContext();
             ctx.globalCompositeOperation = "source-over";
-            
+
             // Fill background
             ctx.fillStyle = this.backgroundStyle;
             ctx.fillRect(offset, offset, width, height);
-            
+
             ctx.strokeStyle = this.borderStyle;
             ctx.lineWidth = border;
-            
+
             var index, position;
-            
+
             // Draw horizontal dividing lines.
             for (index = 0; index <= rows; index += 1) {
-                position = Math.floor(height * (index / rows) + offset) - Math.mod0(border / 2);
+                position = Math.floor(height * (index / rows) + offset) - mod0(border / 2);
                 ctx.moveTo(0, position);
                 ctx.lineTo(width + border, position);
             }
-            
+
             // Draw vertical dividing lines.
             for (index = 0; index <= columns; index += 1) {
-                position = Math.floor(width * (index / columns) + offset) - Math.mod0(border / 2);
+                position = Math.floor(width * (index / columns) + offset) - mod0(border / 2);
                 ctx.moveTo(position, 0);
                 ctx.lineTo(position, height + border);
             }
-            
+
             ctx.stroke();
         });
     };
@@ -270,7 +276,7 @@
      * @private
      */
     GameView.prototype.getPieceArea = function (row, column) {
-        
+
         var pieceTop, pieceLeft, pieceWidth, pieceHeight;
 
         this.getMetrics(function (border, offset, width, height, rows, columns) {
@@ -279,7 +285,7 @@
             pieceTop    = border + height * ((row    - 1) / rows);
             pieceWidth  = width  / columns - border;
             pieceHeight = height / rows    - border;
-            
+
             if (pieceWidth > pieceHeight) {
                 pieceLeft += (pieceWidth - pieceHeight) / 2;
                 pieceWidth = pieceHeight;
@@ -288,7 +294,7 @@
                 pieceHeight = pieceWidth;
             }
         });
-        
+
         return {
             x: Math.floor(pieceLeft),
             y: Math.floor(pieceTop),
@@ -305,18 +311,18 @@
      * @private
      */
     GameView.prototype.getPositionFromXY = function (x, y) {
-        
+
         var row, column;
 
         this.getMetrics(function (border, offset, width, height, rows, columns) {
-            
-            row    = Math.floor((y - offset) / (height / rows   )) + 1;
+
+            row    = Math.floor((y - offset) / (height / rows))    + 1;
             column = Math.floor((x - offset) / (width  / columns)) + 1;
-            
+
             row    = Math.min(Math.max(1, row), rows);
             column = Math.min(Math.max(1, column), columns);
         });
-        
+
         return {
             row: row,
             column: column
@@ -343,32 +349,33 @@
         var ctx = this.getDrawingContext(),
             newList = [],
             oldList = this.redrawingPieceList,
-            item, rect;
-        
+            item,
+            rect;
+
         // Consume the redraw list one at a time, rendering the piece and moving the piece to the new
         // redraw list *if* further animation is required.
         while (oldList.length > 0) {
             item = oldList.shift();
             rect = this.getPieceArea(item.row, item.column);
-            
+
             // Translate and scale the context around the selected piece.
             // This gives `draw` a consistent 100x100 area to work with.
             ctx.save();
             ctx.translate(rect.x + rect.w / 2, rect.y + rect.h / 2);
             ctx.scale(rect.w / 100, rect.h / 100);
-            
+
             // Draw the item
             if (item.draw(ctx)) {
                 newList.push(item);
             }
-            
+
             ctx.restore();
         }
-        
+
         // Set the redraw list to the new list of animating pieces.
         // If the list is empty, stop the animation interval.
         this.redrawingPieceList = newList;
-        
+
         if (newList.length === 0) {
             clearInterval(this.redrawIntervalId);
             delete this.redrawIntervalId;
@@ -380,13 +387,13 @@
      * @private
      */
     GameView.prototype.updateDisplay = function () {
-        
+
         var model = this.model;
-        
+
         model.getBoard().forEachPosition(function (value, row, column, index) {
             var core = model.getPiece(row, column),
                 color = model.getSimulatedPiece(row, column);
-            
+
             this.pieces[index].update(color, core);
         }, this);
     };
@@ -398,10 +405,10 @@
      * @private
      */
     GameView.prototype.onClick = function (event) {
-        
+
         var hoverPosition = this.hoverPosition,
             model;
-        
+
         if (hoverPosition) {
             model = this.model;
             model.move(hoverPosition.row, hoverPosition.column, model.getTurn());
@@ -420,13 +427,13 @@
             oldHoverPosition = this.hoverPosition,
             newHoverPosition = this.hoverPosition = this.getPositionFromXY(x, y),
             model = this.model;
-        
+
         if (oldHoverPosition
                 && oldHoverPosition.row    === newHoverPosition.row
                 && oldHoverPosition.column === newHoverPosition.column) {
             return;
         }
-        
+
         if (model.isInteractive()) {
             model.simulateMove(newHoverPosition.row, newHoverPosition.column, model.getTurn());
         }
@@ -454,13 +461,13 @@
     GameView.prototype.onInteractiveChanged = function (event) {
         var element = this.canvasElement,
             className = element.className;
-        
+
         if (event.newValue) {
             className = className.replace(/\bbusy\b/g, '');
         } else {
             className += ' busy';
         }
-        
+
         element.className = className;
     };
 
@@ -472,7 +479,7 @@
      */
     GameView.prototype.onGameOver = function (event) {
         this.canvasElement.className = 'gameover';
-        
+
         var model = this.model,
             blackCount  = model.getBlackScore(),
             whiteCount  = model.getWhiteScore(),
@@ -481,7 +488,7 @@
 
         model.getBoard().forEachPosition(function (value, row, column, index) {
             var newPiece;
-            
+
             if (index < blackCount) {
                 newPiece = PieceState.BLACK;
             } else if (index < totalSpaces - whiteCount) {
@@ -509,7 +516,7 @@
         this.gameView = gameView;
         this.row = row;
         this.column = column;
-        this.oldColor = this.oldCore = this.color = this.core = PieceState.EMPTY;    
+        this.oldColor = this.oldCore = this.color = this.core = PieceState.EMPTY;
         this.tick = 0;
     };
 
@@ -539,7 +546,7 @@
             colorChanged,
             coreChanged,
             coreMatchesColor;
-        
+
         // We have two options.  If we have started flipping but are less than 50% flipped, all we have
         // to do is change to the target for the end of the flip.  Otherwise, we need to do a full 
         // flip, moving from the current color to the target.  In this case, we need to store the 
@@ -548,23 +555,22 @@
             this.oldColor = this.color;
             this.oldCore = this.core;
         }
-        
+
         // Update the color.
         this.color = color !== undefined ? color : core;
         this.core = core;
-        
+
         if (!isFlipping) {
             // If a flip isn't currently in progress, start flipping
-            
             colorChanged = this.oldColor !== this.color;
             coreChanged = this.oldCore !== this.core;
             coreMatchesColor = this.core === this.color;
-            
+
             // If nothing has changed, quit.
             if (!coreChanged && !colorChanged) {
                 return;
             }
-            
+
             // If only the core changed, refresh without animating.
             // Otherwise, flip the whole piece.
             if (coreChanged && !colorChanged) {
@@ -572,7 +578,7 @@
             } else {
                 this.startFlipping();
             }
-            
+
         } else if (isHalfwayFlipped) {
             // Piece is overhalfway done. Make it reverse directions.
             this.tick = this.FLIP_STEPS - this.tick;
@@ -620,12 +626,12 @@
      * @returns {string} A valid canvas fill style.
      */
     GameView.Piece.prototype.getFill = function (color) {
-        
-        switch(color) {
-        
+
+        switch (color) {
+
         case PieceState.BLACK:
             return "black";
-        
+
         case PieceState.WHITE:
             return "white";
 
@@ -660,7 +666,7 @@
 
         // If we're past the halfway point, use the new color. Otherwise use the old color.
         color = this.getFill(isHalfwayFlipped ? this.color : this.oldColor);
-        core  = this.getFill(isHalfwayFlipped ? this.core  : this.oldCore );
+        core  = this.getFill(isHalfwayFlipped ? this.core  : this.oldCore);
 
         // Fill the background color.
         ctx.fillStyle = this.getFill(PieceState.EMPTY);
@@ -674,7 +680,7 @@
         if (shift * 2 !== steps) {
             ctx.scale(1, Math.abs(1 - shift * 2 / steps));
             this.drawCircle(ctx, color, 40);
-            
+
             if (core !== color) {
                 this.drawCircle(ctx, core, 10);
             }
