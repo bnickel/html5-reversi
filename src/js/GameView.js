@@ -525,7 +525,7 @@
         }
 
         // Update the color.
-        this.color = color !== undefined ? color : core;
+        this.color = color !== null ? color : core;
         this.core = core;
 
         if (!isFlipping) {

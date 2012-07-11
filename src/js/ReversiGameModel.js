@@ -63,6 +63,7 @@ ReversiGameModel.prototype.move = function(row, column, color) {
     
     if(changes.length) {
         this.setPieces(changes);
+        // TODO: Move from passing changes to passing {changes: changes}
         this.onMove(changes);
         return true;
     }

@@ -67,11 +67,11 @@ function onGameOver(event)
 
 function onBlackModeChanged(event)
 {
-	model.setInteractive(PieceState.BLACK, event.newMode == "human");
+	model.setInteractive(PieceState.BLACK, event.newMode == PlayerMode.HUMAN);
 
 	killWorker();
 
-	if(event.newMode == "human")
+	if(event.newMode == PlayerMode.HUMAN)
 		return;
 
 	if(model.turn == PieceState.BLACK)
@@ -80,12 +80,12 @@ function onBlackModeChanged(event)
 
 function onWhiteModeChanged(event)
 {
-	model.setInteractive(PieceState.WHITE, event.newMode == "human");
+	model.setInteractive(PieceState.WHITE, event.newMode == PlayerMode.HUMAN);
 
 	if(worker != undefined)
 		worker.terminate();
 
-	if(event.newMode == "human")
+	if(event.newMode == PlayerMode.HUMAN)
 		return;
 
 	if(model.turn == PieceState.WHITE)
@@ -121,7 +121,7 @@ function getBestMove(color)
 
 	var difficulty = color == PieceState.BLACK ? blackMode.getMode() : whiteMode.getMode();
 
-	if(difficulty == "human")
+	if(difficulty == PlayerMode.HUMAN)
 		return;
 
 	killWorker();

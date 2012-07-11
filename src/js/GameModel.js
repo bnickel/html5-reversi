@@ -5,6 +5,7 @@
  */
 
 (function (window) {
+    'use strict';
 
     /**
      * An abstract model for a two color game grid like Reversi or Go.
@@ -18,33 +19,48 @@
         this.board = new Board(rows, columns, PieceState.EMPTY);
     }
 
+    // Enable events on instances of {GameModel}.
+    GameModel.enableEventsOnPrototype();
+
     /**
-     * The board serving as a backend for this model.  Should only be set using {GameModel.prototype.setBoard}.
+     * The board serving as a backend for this model.
+     * Should only be set using {GameModel.prototype.setBoard}.
      * @type {Board}
      */
     GameModel.prototype.board = null;
 
     /**
-     * The current turn.  Should only be set using {GameModel.prototype.setTurn}.
+     * The simulated board to be shown when the player is trying to choose a move.
+     * Should only be set using {GameModel.prototype.setSimulation}.
+     * @type {Board}
+     */
+    GameModel.prototype.simulation = null;
+
+    /**
+     * The current turn.
+     * Should only be set using {GameModel.prototype.setTurn}.
      * @type {number}
      */
     GameModel.prototype.turn = PieceState.EMPTY;
 
     /**
-     * Whether or not the game is over.  Should only be set using {GameModel.prototype.setGameOver}.
+     * Whether or not the game is over.
+     * Should only be set using {GameModel.prototype.setGameOver}.
      * @type {boolean}
      */
     GameModel.prototype.isGameOver = true;
 
     /**
-     * Whether or not the black player is interactive.  Should only be set using {GameModel.prototype.setInteractive}.
+     * Whether or not the black player is interactive.
+     * Should only be set using {GameModel.prototype.setInteractive}.
      * @type {boolean}
      * @private
      */
     GameModel.prototype.blackIsInteractive = true;
 
     /**
-     * Whether or not the white player is interactive.  Should only be set using {GameModel.prototype.setInteractive}.
+     * Whether or not the white player is interactive.
+     * Should only be set using {GameModel.prototype.setInteractive}.
      * @type {boolean}
      * @private
      */
@@ -108,10 +124,15 @@
      */
     GameModel.prototype.playerCanMove = function (color) {
 
-        // TODO: Board.forEachPosition
-        for(var row = this.getRows(); row > 0; row --) {
-            for(var column = this.getColumns(); column > 0; column--) {
-                if(this.canMove(row, column, color)) {
+        var rows = this.getRows(),
+            columns = this.getColumns(),
+            row,
+            column;
+
+        // TODO: Board.prototype.forEachPosition currently lacks the ability to exit a loop.
+        for (row = rows; row > 0; row -= 1) {
+            for (column = columns; column > 0; column -= 1) {
+                if (this.canMove(row, column, color)) {
                     return true;
                 }
             }
@@ -154,13 +175,14 @@
      * @param {number} color The player color.
      */
     GameModel.prototype.setTurn = function (color) {
-        var oldInteractive = this.isInteractive();
-        var oldTurn = this.turn;
+        var oldTurn = this.turn,
+            oldInteractive = this.isInteractive(),
+            newInteractive;
 
         this.turn = color;
-        var newInteractive = this.isInteractive();
+        newInteractive = this.isInteractive();
 
-        if (oldInteractive != newInteractive) {
+        if (oldInteractive !== newInteractive) {
             this.onInteractiveChanged({
                 oldValue: oldInteractive,
                 newValue: newInteractive
@@ -180,13 +202,13 @@
      */
     GameModel.prototype.setGameOver = function (value) {
         var newValue = !!value;
-    
-        if (this.isGameOver == newValue) {
+
+        if (this.isGameOver === newValue) {
             return;
         }
-    
+
         this.isGameOver = newValue;
-    
+
         if (newValue) {
             this.setTurn(PieceState.EMPTY);
             this.onGameOver({});
@@ -217,7 +239,8 @@
      * @param {boolean} value Whether or not the player should be interactive.
      */
     GameModel.prototype.setInteractive = function (color, value) {
-        var oldInteractive = this.isInteractive();
+        var oldInteractive = this.isInteractive(),
+            newInteractive;
 
         switch (color) {
 
@@ -230,9 +253,9 @@
             break;
         }
 
-        var newInteractive = this.isInteractive();
+        newInteractive = this.isInteractive();
 
-        if(oldInteractive != newInteractive) {
+        if (oldInteractive !== newInteractive) {
             this.onInteractiveChanged({
                 oldValue: oldInteractive,
                 newValue: newInteractive
@@ -245,15 +268,15 @@
      * @returns {number} The number of rows.
      */
     GameModel.prototype.getRows = function () {
-        return this.board.getRows();
+        return this.board.rows;
     };
 
     /**
      * Gets the number of columns on the board.
      * @returns {number} The number of columns.
      */
-    GameModel.prototype.getColumns = function() {
-        return this.board.getColumns();
+    GameModel.prototype.getColumns = function () {
+        return this.board.columns;
     };
 
     /**
@@ -264,8 +287,8 @@
         this.board.setPieces(changes);
         this.clearSimulation();
         this.onBoardChanged({
-                changes: changes
-            });
+            changes: changes
+        });
     };
 
     /**
@@ -285,74 +308,133 @@
     GameModel.prototype.setBoard = function (board) {
         this.board = board;
         this.clearSimulation();
-        this.onBoardChanged({});
+        this.onBoardChanged({changes: null});
     };
 
-GameModel.prototype.setSimulation = function(changes) {
-    this.__simulation = this.board.clone();
-    this.__simulation.setPieces(changes);
-    this.onSimulationChanged({});
-};
+    /**
+     * Replaces the current board simulation with a new one based on the current board plus
+     * a collection of changes.
+     *
+     * @param {Array[Change]} changes Changes to make on the board simulation.
+     */
+    GameModel.prototype.setSimulation = function (changes) {
+        this.simulation = this.board.clone();
+        this.simulation.setPieces(changes);
+        this.onSimulationChanged({});
+    };
 
-GameModel.prototype.clearSimulation = function() {
-    if(!this.__simulation) {
-        return;
-    }
-    
-    delete this.__simulation;
-    this.onSimulationChanged({});
-};
+    /**
+     * Clears the simulation, allowing the current game board to be shown.
+     */
+    GameModel.prototype.clearSimulation = function () {
+        if (!this.simulation) {
+            return;
+        }
 
-GameModel.prototype.getSimulatedPiece = function(row, column) {
-    if(this.__simulation) {
-        return this.__simulation.getPiece(row, column);
-    }
-    
-    return undefined;
-};
+        delete this.simulation;
+        this.onSimulationChanged({});
+    };
 
-GameModel.prototype.clone = function(target) {
-    target || (target = new GameBoardBackend(0, 0));
+    /**
+     * Gets the simulated piece at the specified position.  Returns null if the simulation is not
+     * active.
+     */
+    GameModel.prototype.getSimulatedPiece = function (row, column) {
+        return this.simulation ? this.simulation.getPiece(row, column) : null;
+    };
 
-    target.board = this.board.clone();
-    target.turn = this.turn;
-    target.__blackIsInteractive = this.__blackIsInteractive;
-    target.__whiteIsInteractive = this.__whiteIsInteractive;
-    target.isGameOver = this.isGameOver;
-    
-    return target;
-}
 
-GameModel.enableEventsOnPrototype();
+    /**
+     * Clones the current model, optionally cloning onto another instance for the case of
+     * inheritence.
+     *
+     * @param {GameModel} [target] A game model to clone onto.  If undefined, a new {GameModel}
+     * will be created.
+     */
+    GameModel.prototype.clone = function (target) {
 
-GameModel.prototype.onMove = function(eventArgs) {
-    this.evokeEvent("move", eventArgs);
-};
+        target = target || new GameModel(0, 0);
 
-GameModel.prototype.onNewGame = function(eventArgs) {
-    this.evokeEvent("newgame", eventArgs);
-};
+        target.board = this.board.clone();
+        target.turn = this.turn;
+        target.blackIsInteractive = this.blackIsInteractive;
+        target.whiteIsInteractive = this.whiteIsInteractive;
+        target.isGameOver = this.isGameOver;
 
-GameModel.prototype.onGameOver = function(eventArgs) {
-    this.evokeEvent("gameover", eventArgs);
-};
+        return target;
+    };
 
-GameModel.prototype.onTurnChanged = function(eventArgs) {
-    this.evokeEvent("turnchanged", eventArgs);
-};
+    // TODO: Specify eventArgs contents in docs.
+    /**
+     * Protected method to be called when a move has been performed.
+     * @protected
+     * @param {Object} eventArgs Event arguments, including model specific arguments.
+     */
+    GameModel.prototype.onMove = function (eventArgs) {
+        this.evokeEvent("move", eventArgs);
+    };
 
-GameModel.prototype.onInteractiveChanged = function(eventArgs) {
-    this.evokeEvent("interactivechanged", eventArgs);
-};
+    /**
+     * Protected method to be called when a new game starts.
+     * @protected
+     * @param {Object} eventArgs Event arguments, including model specific arguments.
+     */
+    GameModel.prototype.onNewGame = function (eventArgs) {
+        this.evokeEvent("newgame", eventArgs);
+    };
 
-GameModel.prototype.onBoardChanged = function(eventArgs) {
-    this.evokeEvent("boardchanged", eventArgs);
-};
+    /**
+     * Protected method to be called when the game is over.
+     * @protected
+     * @param {Object} eventArgs Event arguments, including model specific arguments.
+     */
+    GameModel.prototype.onGameOver = function (eventArgs) {
+        this.evokeEvent("gameover", eventArgs);
+    };
 
-GameModel.prototype.onSimulationChanged = function(eventArgs) {
-    this.evokeEvent("simulationchanged", eventArgs);
-};
+    /**
+     * Protected method to be called when the turn changes.
+     * @protected
+     * @param {Object} eventArgs Event arguments, including model specific arguments.
+     * @param {number} eventArgs.oldTurn The previous turn's player.
+     * @param {number} eventArgs.newTurn The new turn's player.
+     * @param {boolean} eventArgs.isInteractive Whether or not the new player is interactive.
+     */
+    GameModel.prototype.onTurnChanged = function (eventArgs) {
+        this.evokeEvent("turnchanged", eventArgs);
+    };
 
-window.GameModel = GameModel;
+    /**
+     * Protected method to be called when the interactivity of the board changes.
+     * @protected
+     * @param {Object} eventArgs Event arguments, including model specific arguments.
+     * @param {number} eventArgs.oldValue The previous value of {GameModel.prototype.isInteractive}.
+     * @param {number} eventArgs.newValue The new value of {GameModel.prototype.isInteractive}.
+     */
+    GameModel.prototype.onInteractiveChanged = function (eventArgs) {
+        this.evokeEvent("interactivechanged", eventArgs);
+    };
+
+    /**
+     * Protected method to be called when the board changes.
+     * @protected
+     * @param {Object} eventArgs Event arguments, including model specific arguments.
+     * @param {Array[Change]} eventArgs.changes A list containing the specific changes that have
+     * occurred or null if the whole board should be updated.
+     */
+    GameModel.prototype.onBoardChanged = function (eventArgs) {
+        this.evokeEvent("boardchanged", eventArgs);
+    };
+
+    /**
+     * Protected method to be called when the simulation changes.
+     * @protected
+     * @param {Object} eventArgs Event arguments, including model specific arguments.
+     */
+    GameModel.prototype.onSimulationChanged = function (eventArgs) {
+        this.evokeEvent("simulationchanged", eventArgs);
+    };
+
+    window.GameModel = GameModel;
 
 }(window));
