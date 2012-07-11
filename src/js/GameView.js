@@ -7,10 +7,17 @@
 (function (window) {
     'use strict';
 
+    /**
+     * Gets the decimal part of a number.
+     */
     function mod0(value) {
         return value - Math.floor(value);
     };
 
+    /**
+     * A view that renders a {GameModel} and passes mouse events back to it.
+     * @class
+     */
     function GameView(canvasSelector, model) {
 
         var self = this,
@@ -21,7 +28,7 @@
         self.pieces             = [];
         self.redrawingPieceList = [];
 
-        model.getBoard().forEachPosition(function (value, row, column, index) {
+        model.board.forEachPosition(function (value, row, column, index) {
             self.pieces[index] = new GameView.Piece(self, row, column);
         }, self);
 
@@ -59,7 +66,8 @@
             self.onGameOver(event);
         }, false);
     }
-
+    
+    // Enable events on instances of {GameView}.
     GameView.enableEventsOnPrototype();
 
     /**
@@ -124,38 +132,6 @@
     GameView.prototype.hoverPosition = null;
 
     /**
-     * @returns {object}
-     * @depreciated
-     */
-    GameView.prototype.getBorderStyle = function () {
-        return this.borderStyle;
-    };
-
-    /**
-     * @returns {number}
-     * @depreciated
-     */
-    GameView.prototype.getBorderWidth = function () {
-        return this.borderWidth;
-    };
-
-    /**
-     * @returns {Object}
-     * @depreciated
-     */
-    GameView.prototype.getBackgroundStyle = function () {
-        return this.backgroundStyle;
-    };
-
-    /**
-     * @returns {CanvasElement}
-     * @depreciated
-     */
-    GameView.prototype.getCanvasElement = function () {
-        return this.canvasElement;
-    };
-
-    /**
      * Gets the drawing context used for rendering the game view on the canvas.
      * 
      * @returns {CanvasRenderingContext2D}
@@ -163,14 +139,6 @@
      */
     GameView.prototype.getDrawingContext = function () {
         return this.canvasElement.getContext("2d");
-    };
-
-    /**
-     * @returns {Model} The game model driving the view.
-     * @depreciated
-     */
-    GameView.prototype.getModel = function () {
-        return this.model;
     };
 
     /**
@@ -390,7 +358,7 @@
 
         var model = this.model;
 
-        model.getBoard().forEachPosition(function (value, row, column, index) {
+        model.board.forEachPosition(function (value, row, column, index) {
             var core = model.getPiece(row, column),
                 color = model.getSimulatedPiece(row, column);
 
@@ -411,7 +379,7 @@
 
         if (hoverPosition) {
             model = this.model;
-            model.move(hoverPosition.row, hoverPosition.column, model.getTurn());
+            model.move(hoverPosition.row, hoverPosition.column, model.turn);
         }
     };
 
@@ -435,7 +403,7 @@
         }
 
         if (model.isInteractive()) {
-            model.simulateMove(newHoverPosition.row, newHoverPosition.column, model.getTurn());
+            model.simulateMove(newHoverPosition.row, newHoverPosition.column, model.turn);
         }
     };
 
@@ -486,7 +454,7 @@
             totalSpaces = model.getRows() * model.getColumns(),
             changes = [];
 
-        model.getBoard().forEachPosition(function (value, row, column, index) {
+        model.board.forEachPosition(function (value, row, column, index) {
             var newPiece;
 
             if (index < blackCount) {

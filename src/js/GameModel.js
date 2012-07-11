@@ -1,171 +1,295 @@
-function GameModel(rows, columns) {
-    this.__board = new Board(rows, columns, PieceState.EMPTY);
-    this.__turn = PieceState.EMPTY;
-    this.__blackIsInteractive = true;
-    this.__whiteIsInteractive = true;
-    this.__isGameOver = true;
-}
+/**
+ * @preserve
+ * Copyright 2010-2012 Brian Nickel
+ * This source may be freely distributed under the MIT license.
+ */
 
-GameModel.prototype.newGame = function(firstTurn) {
-    this.__turn = firstTurn || PieceState.BLACK;
-    this.setGameOver(false);
-};
+(function (window) {
 
-GameModel.prototype.simulateMove = function(row, column, color) {
-    return false;
-}
+    /**
+     * An abstract model for a two color game grid like Reversi or Go.
+     * 
+     * @class
+     * @abstract
+     * @param {number} rows The number of rows in the game.
+     * @param {number} columns The number of columns in the game.
+     */
+    function GameModel(rows, columns) {
+        this.board = new Board(rows, columns, PieceState.EMPTY);
+    }
 
-GameModel.prototype.move = function(row, column, color) {
-    return false;
-};
+    /**
+     * The board serving as a backend for this model.  Should only be set using {GameModel.prototype.setBoard}.
+     * @type {Board}
+     */
+    GameModel.prototype.board = null;
 
-GameModel.prototype.canMove = function(row, column, color) {
-    return false;
-};
+    /**
+     * The current turn.  Should only be set using {GameModel.prototype.setTurn}.
+     * @type {number}
+     */
+    GameModel.prototype.turn = PieceState.EMPTY;
 
-GameModel.prototype.playerCanMove = function(color) {
-    
-    for(var row = this.getRows(); row > 0; row --) {
-        for(var column = this.getColumns(); column > 0; column--) {
-            if(this.canMove(row, column, color)) {
-                return true;
+    /**
+     * Whether or not the game is over.  Should only be set using {GameModel.prototype.setGameOver}.
+     * @type {boolean}
+     */
+    GameModel.prototype.isGameOver = true;
+
+    /**
+     * Whether or not the black player is interactive.  Should only be set using {GameModel.prototype.setInteractive}.
+     * @type {boolean}
+     * @private
+     */
+    GameModel.prototype.blackIsInteractive = true;
+
+    /**
+     * Whether or not the white player is interactive.  Should only be set using {GameModel.prototype.setInteractive}.
+     * @type {boolean}
+     * @private
+     */
+    GameModel.prototype.whiteIsInteractive = true;
+
+    /**
+     * Starts a new game with a specific piece going first.
+     *
+     * @param {number} [firstTurn=PieceState.BLACK] The first piece to move.
+     */
+    GameModel.prototype.newGame = function (firstTurn) {
+        this.turn = firstTurn || PieceState.BLACK;
+        this.setGameOver(false);
+    };
+
+    /**
+     * Simulates a move, updating the model's simulation and returning true if the move would
+     * occur.
+     * 
+     * @param {number} row The row to place the piece at.
+     * @param {number} column The column to place the piece at.
+     * @param {number} color The color of piece to place.
+     * @returns {boolean} True if a move would occur.
+     * @abstract
+     */
+    GameModel.prototype.simulateMove = function (row, column, color) {
+        return false;
+    };
+
+    /**
+     * Performs a move, updating the model and returning true if the move occurs.
+     * 
+     * @param {number} row The row to place the piece at.
+     * @param {number} column The column to place the piece at.
+     * @param {number} color The color of piece to place.
+     * @returns {boolean} True if a move occured.
+     * @abstract
+     */
+    GameModel.prototype.move = function (row, column, color) {
+        return false;
+    };
+
+    /**
+     * Evaluates if a move can be performed.
+     * 
+     * @param {number} row The row to place the piece at.
+     * @param {number} column The column to place the piece at.
+     * @param {number} color The color of piece to place.
+     * @returns {boolean} True if a move would occur.
+     * @abstract
+     */
+    GameModel.prototype.canMove = function (row, column, color) {
+        return false;
+    };
+
+    /**
+     * Evaluates whether or not a player can move.
+     * 
+     * @param {number} color The player color.
+     * @returns {boolean} True if the player can move.
+     */
+    GameModel.prototype.playerCanMove = function (color) {
+
+        // TODO: Board.forEachPosition
+        for(var row = this.getRows(); row > 0; row --) {
+            for(var column = this.getColumns(); column > 0; column--) {
+                if(this.canMove(row, column, color)) {
+                    return true;
+                }
             }
         }
-    }
-    
-    return false;
-}
 
-GameModel.prototype.getValidMoves = function(color) {
+        return false;
+    };
 
-    var moves = [];
-    this.getBoard().forEachPosition(function (value, row, column) {
-        if (this.canMove(row, column, color)) {
-            moves.push(new Change(row, column, color));
-        }
-    }, this);
+    /**
+     * Gets all valid moves for a player.
+     * 
+     * @param {number} color The player color.
+     * @returns {Array[Change]} An array of possible moves.
+     */
+    GameModel.prototype.getValidMoves = function (color) {
 
-    return moves;
-}
+        var moves = [];
+        this.board.forEachPosition(function (value, row, column) {
+            if (this.canMove(row, column, color)) {
+                moves.push(new Change(row, column, color));
+            }
+        }, this);
 
-GameModel.prototype.getValidMoveCount = function(color) {
-    return this.getValidMoves(color).length;
-};
+        return moves;
+    };
 
-GameModel.prototype.getTurn = function() {
-    return this.__turn;
-};
+    /**
+     * Gets the number of valid moves for a player.
+     * 
+     * @param {number} color The player color.
+     * @returns {number} The number of valid moves.
+     */
+    GameModel.prototype.getValidMoveCount = function (color) {
+        return this.getValidMoves(color).length;
+    };
 
-GameModel.prototype.setTurn = function(color) {
-    var oldInteractive = this.isInteractive();
-    var oldTurn = this.__turn;
+    /**
+     * Changes the current turn to a specified color.
+     * 
+     * @param {number} color The player color.
+     */
+    GameModel.prototype.setTurn = function (color) {
+        var oldInteractive = this.isInteractive();
+        var oldTurn = this.turn;
 
-    this.__turn = color;
-    var newInteractive = this.isInteractive();
+        this.turn = color;
+        var newInteractive = this.isInteractive();
 
-    if(oldInteractive != newInteractive) {
-        this.onInteractiveChanged({
+        if (oldInteractive != newInteractive) {
+            this.onInteractiveChanged({
                 oldValue: oldInteractive,
                 newValue: newInteractive
             });
-    }
+        }
 
-    this.onTurnChanged({
+        this.onTurnChanged({
             oldTurn: oldTurn,
             newTurn: color,
             isInteractive: newInteractive
         });
-};
+    };
 
-GameModel.prototype.isGameOver = function() {
-    return this.__isGameOver;
-};
+    /**
+     * Sets whether or not the game is over.
+     * @param {boolean} value Sets the game over status.
+     */
+    GameModel.prototype.setGameOver = function (value) {
+        var newValue = !!value;
+    
+        if (this.isGameOver == newValue) {
+            return;
+        }
+    
+        this.isGameOver = newValue;
+    
+        if (newValue) {
+            this.setTurn(PieceState.EMPTY);
+            this.onGameOver({});
+        }
+    };
 
-GameModel.prototype.setGameOver = function(value) {
-    var newValue = !!value;
-    
-    if(this.__isGameOver == newValue) {
-        return;
-    }
-    
-    this.__isGameOver = newValue;
-    
-    if(newValue) {
-        this.setTurn(PieceState.EMPTY);
-        this.onGameOver({});
-    }
-};
+    /**
+     * Gets whether or not the game board is currently interactive.
+     */
+    GameModel.prototype.isInteractive = function () {
+        switch (this.turn) {
 
-GameModel.prototype.isInteractive = function() {
-    switch(this.getTurn()) {
-    
-    case PieceState.BLACK:
-        return this.__blackIsInteractive;
-    
-    case PieceState.WHITE:
-        return this.__whiteIsInteractive;
-    
-    default:
-        return false;
-    }
-}
+        case PieceState.BLACK:
+            return this.blackIsInteractive;
 
-GameModel.prototype.setInteractive = function(color, value) {
-    var oldInteractive = this.isInteractive();
-    
-    switch(color) {
-    
-    case PieceState.BLACK:
-        this.__blackIsInteractive = !!value;
-        break;
-    
-    case PieceState.WHITE:
-        this.__whiteIsInteractive = !!value;
-        break;
-    }
+        case PieceState.WHITE:
+            return this.whiteIsInteractive;
 
-    var newInteractive = this.isInteractive();
-    
-    if(oldInteractive != newInteractive) {
-        this.onInteractiveChanged({
+        default:
+            return false;
+        }
+    };
+
+    /**
+     * Sets whether or not a player is interactive.  If not, the player's turns should be
+     * managed with AI.
+     * @param {number} color The player's color.
+     * @param {boolean} value Whether or not the player should be interactive.
+     */
+    GameModel.prototype.setInteractive = function (color, value) {
+        var oldInteractive = this.isInteractive();
+
+        switch (color) {
+
+        case PieceState.BLACK:
+            this.blackIsInteractive = !!value;
+            break;
+
+        case PieceState.WHITE:
+            this.whiteIsInteractive = !!value;
+            break;
+        }
+
+        var newInteractive = this.isInteractive();
+
+        if(oldInteractive != newInteractive) {
+            this.onInteractiveChanged({
                 oldValue: oldInteractive,
                 newValue: newInteractive
             });
-    }
-};
+        }
+    };
 
-GameModel.prototype.getRows = function() {
-    return this.__board.getRows();
-};
+    /**
+     * Gets the number of rows on the board.
+     * @returns {number} The number of rows.
+     */
+    GameModel.prototype.getRows = function () {
+        return this.board.getRows();
+    };
 
-GameModel.prototype.getColumns = function() {
-    return this.__board.getColumns();
-};
+    /**
+     * Gets the number of columns on the board.
+     * @returns {number} The number of columns.
+     */
+    GameModel.prototype.getColumns = function() {
+        return this.board.getColumns();
+    };
 
-GameModel.prototype.setPieces = function(changes) {
-    this.__board.setPieces(changes);
-    this.clearSimulation();
-    this.onBoardChanged({
-            changes: changes
-        });
-};
+    /**
+     * Sets the pieces on the board, clearing the simulation.
+     * @param {Array[Change]} changes The changes to make to the board.
+     */
+    GameModel.prototype.setPieces = function (changes) {
+        this.board.setPieces(changes);
+        this.clearSimulation();
+        this.onBoardChanged({
+                changes: changes
+            });
+    };
 
-GameModel.prototype.getPiece = function(row, column) {
-    return this.__board.getPiece(row, column);
-};
+    /**
+     * Gets the pieces on the board.
+     * @param {number} row The row to look up.
+     * @param {number} column The column to look up.
+     * @returns {number} The color of the piece at that position.
+     */
+    GameModel.prototype.getPiece = function (row, column) {
+        return this.board.getPiece(row, column);
+    };
 
-GameModel.prototype.setBoard = function(board) {
-    this.__board = board;
-    this.clearSimulation();
-    this.onBoardChanged({});
-};
-
-GameModel.prototype.getBoard = function() {
-    return this.__board;
-};
+    /**
+     * Replaces the current board with a new one.
+     * @param {Board} board The board to use for this model.
+     */
+    GameModel.prototype.setBoard = function (board) {
+        this.board = board;
+        this.clearSimulation();
+        this.onBoardChanged({});
+    };
 
 GameModel.prototype.setSimulation = function(changes) {
-    this.__simulation = this.__board.clone();
+    this.__simulation = this.board.clone();
     this.__simulation.setPieces(changes);
     this.onSimulationChanged({});
 };
@@ -190,11 +314,11 @@ GameModel.prototype.getSimulatedPiece = function(row, column) {
 GameModel.prototype.clone = function(target) {
     target || (target = new GameBoardBackend(0, 0));
 
-    target.__board = this.__board.clone();
-    target.__turn = this.__turn;
+    target.board = this.board.clone();
+    target.turn = this.turn;
     target.__blackIsInteractive = this.__blackIsInteractive;
     target.__whiteIsInteractive = this.__whiteIsInteractive;
-    target.__isGameOver = this.__isGameOver;
+    target.isGameOver = this.isGameOver;
     
     return target;
 }
@@ -228,3 +352,7 @@ GameModel.prototype.onBoardChanged = function(eventArgs) {
 GameModel.prototype.onSimulationChanged = function(eventArgs) {
     this.evokeEvent("simulationchanged", eventArgs);
 };
+
+window.GameModel = GameModel;
+
+}(window));

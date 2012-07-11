@@ -32,9 +32,9 @@ window.onload = function()
 function onNewGame(event)
 {
 	updateScore();
-	if(model.getTurn() == PieceState.BLACK)
+	if(model.turn == PieceState.BLACK)
 		setTitle("Black's Turn");
-	if(model.getTurn() == PieceState.WHITE)
+	if(model.turn == PieceState.WHITE)
 		setTitle("White's Turn");
 }
 
@@ -74,7 +74,7 @@ function onBlackModeChanged(event)
 	if(event.newMode == "human")
 		return;
 
-	if(model.getTurn() == PieceState.BLACK)
+	if(model.turn == PieceState.BLACK)
 		getBestMove(PieceState.BLACK);
 }
 
@@ -88,7 +88,7 @@ function onWhiteModeChanged(event)
 	if(event.newMode == "human")
 		return;
 
-	if(model.getTurn() == PieceState.WHITE)
+	if(model.turn == PieceState.WHITE)
 		getBestMove(PieceState.WHITE);
 }
 
@@ -99,7 +99,7 @@ function onWorkerMessage(event)
 	var column = parseInt(data[1])
 	var color  = parseInt(data[2]);
 
-	if(model.getTurn() == color)
+	if(model.turn == color)
 		model.move(row, column, color);
 }
 
@@ -127,7 +127,7 @@ function getBestMove(color)
 	killWorker();
 	worker = new Worker("js/ComputerPlayer.js");
 	worker.onmessage = onWorkerMessage;
-	worker.postMessage(difficulty + ";" + color + ";" + model.getBoard().serialize());
+	worker.postMessage(difficulty + ";" + color + ";" + model.board.serialize());
 }
 
 function killWorker()

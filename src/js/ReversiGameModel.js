@@ -72,7 +72,7 @@ ReversiGameModel.prototype.move = function(row, column, color) {
 
 ReversiGameModel.prototype.canMove = function(row, column, color) {
     
-    if(this.__board.getPiece(row, column) != PieceState.EMPTY) {
+    if(this.board.getPiece(row, column) != PieceState.EMPTY) {
         return false;
     }
     
@@ -95,7 +95,7 @@ ReversiGameModel.prototype.canMoveDirection = function(row, column, color, dr, d
             return false;
         }
         
-        var existing = this.__board.getPiece(row, column);
+        var existing = this.board.getPiece(row, column);
         if(existing == PieceState.EMPTY) {
             return false;
         }
@@ -110,7 +110,7 @@ ReversiGameModel.prototype.canMoveDirection = function(row, column, color, dr, d
 
 ReversiGameModel.prototype.getMoveChanges = function(row, column, color) {
 
-    if(this.__board.getPiece(row, column) != PieceState.EMPTY) {
+    if(this.board.getPiece(row, column) != PieceState.EMPTY) {
         return [];
     }
     
@@ -140,7 +140,7 @@ ReversiGameModel.prototype.getDirectionChanges = function(row, column, color, dr
             return;
         }
         
-        var existing = this.__board.getPiece(row, column);
+        var existing = this.board.getPiece(row, column);
         if(existing == PieceState.EMPTY) {
             return;
         }
@@ -178,7 +178,7 @@ ReversiGameModel.prototype.onMove = function(eventArgs) {
         return;
     }
     
-    var nextTurn = -this.getTurn();
+    var nextTurn = -this.turn;
     
     if(!this.__supressTurnValidation) {
         if(!this.playerCanMove(nextTurn)) {
