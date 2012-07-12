@@ -17,16 +17,16 @@ window.onload = function()
 	model = new ReversiGameModel(8, 8);
 	view  = new GameView('#game-board', model);
 
-	model.addEventListener("newgame", onNewGame, false);
-	model.addEventListener("gameover", onGameOver, false);
-	model.addEventListener("turnchanged", onTurnChanged, false);
-	model.addEventListener("move", onMove, false);
+	model.addEventListener('newgame', onNewGame, false);
+	model.addEventListener('gameover', onGameOver, false);
+	model.addEventListener('turnchanged', onTurnChanged, false);
+	model.addEventListener('move', onMove, false);
 	model.newGame();
 
 	blackMode = new PlayerSelector('.player-selector.black', 'Black Player');
 	whiteMode = new PlayerSelector('.player-selector.white', 'White Player');
-	blackMode.addEventListener("valuechanged", onBlackModeChanged, false);
-	whiteMode.addEventListener("valuechanged", onWhiteModeChanged, false);
+	blackMode.addEventListener('modechanged', onBlackModeChanged, false);
+	whiteMode.addEventListener('modechanged', onWhiteModeChanged, false);
 }
 
 function onNewGame(event)
@@ -43,8 +43,7 @@ function onMove(event)
 	updateScore();
 }
 
-function onTurnChanged(event)
-{
+function onTurnChanged(event) {
 	if(event.newTurn == PieceState.EMPTY)
 		setTitle("No Moves");
 	else if(event.newTurn == PieceState.BLACK && event.oldTurn == PieceState.BLACK)
@@ -110,8 +109,8 @@ function setTitle(message)
 
 function updateScore()
 {
-	document.querySelector('.score-box.black').textContent = model.blackScore.toString();
-	document.querySelector('.score-box.black').textContent = model.whiteScore.toString();
+	document.querySelector('.score-box.black').textContent = String(model.blackScore);
+	document.querySelector('.score-box.white').textContent = String(model.whiteScore);
 }
 
 function getBestMove(color)
