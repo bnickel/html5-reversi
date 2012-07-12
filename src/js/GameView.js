@@ -12,7 +12,7 @@
      */
     function mod0(value) {
         return value - Math.floor(value);
-    };
+    }
 
     /**
      * A view that renders a {GameModel} and passes mouse events back to it.
@@ -66,7 +66,7 @@
             self.onGameOver(event);
         }, false);
     }
-    
+
     // Enable events on instances of {GameView}.
     GameView.enableEventsOnPrototype();
 
@@ -449,8 +449,8 @@
         this.canvasElement.className = 'gameover';
 
         var model = this.model,
-            blackCount  = model.getBlackScore(),
-            whiteCount  = model.getWhiteScore(),
+            blackCount  = model.blackScore,
+            whiteCount  = model.whiteScore,
             totalSpaces = model.getRows() * model.getColumns(),
             changes = [];
 

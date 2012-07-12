@@ -61,7 +61,7 @@ function onTurnChanged(event)
 
 function onGameOver(event)
 {
-	var diff = model.getBlackScore() - model.getWhiteScore();
+	var diff = model.blackScore - model._whiteScore;
 	setTitle(diff == 0 ? "Tie Game!" : (diff > 0 ? "Black Wins!" : "White Wins!"));
 }
 
@@ -110,8 +110,8 @@ function setTitle(message)
 
 function updateScore()
 {
-	document.querySelector('.score-box.black').textContent = model.getBlackScore().toString();
-	document.querySelector('.score-box.black').textContent = model.getWhiteScore().toString();
+	document.querySelector('.score-box.black').textContent = model.blackScore.toString();
+	document.querySelector('.score-box.black').textContent = model.whiteScore.toString();
 }
 
 function getBestMove(color)

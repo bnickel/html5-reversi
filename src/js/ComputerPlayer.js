@@ -10,8 +10,9 @@ onmessage = function(event)
     var data = event.data.split(";");
     var model = new ReversiGameModel(0,0);
     model.setBoard(Board.deserialize(data[2]));
-    model.useComplexStats(true);
-    model.supressTurnValidation(true);
+    model.useComplexStats = true;
+    model.supressTurnValidation = true;
+    model.updateStats();
     
     var color = parseInt(data[1]);
     var difficulty = data[0];
@@ -47,7 +48,7 @@ ReversiGameModel.prototype.getBestMove = function(ai, color, depth, alpha, beta)
         var testMove = validMoves[(randOffset + i) % validMoves.length];
         var testModel = this.clone();
         testModel.move(testMove.row, testMove.column, testMove.color);
-        var score = testModel.getWhiteScore() - testModel.getBlackScore();
+        var score = testModel.whiteScore - testModel.blackScore;
 
         // Check the board.
         var nextColor = -color;
@@ -94,9 +95,9 @@ ReversiGameModel.prototype.getBestMove = function(ai, color, depth, alpha, beta)
             else
                 testMove.rank =
                     ai.forfeitWeight   * forfeit +
-                    ai.frontierWeight  * (testModel.getBlackFrontierCount() - testModel.getWhiteFrontierCount()) +
+                    ai.frontierWeight  * (testModel.blackFrontierCount - testModel.whiteFrontierCount) +
                     ai.mobilityWeight  * color * (validMoves.length - opponentValidMoves) +
-                    ai.stabilityWeight * (testModel.getWhiteSafeCount() - testModel.getBlackSafeCount()) +
+                    ai.stabilityWeight * (testModel.whiteSafeCount - testModel.blackSafeCount) +
                                          score;
         }
 
@@ -200,7 +201,7 @@ function AILevel(difficulty, model)
 
     // Near the end of the game, when there are relatively few moves
     // left, set the look-ahead depth to do an exhaustive search.
-    if (model.getEmptySquares() <= this.difficulty + 9)
-        this.lookAheadDepth = model.getEmptySquares();
+    if (model.emptySquares <= this.difficulty + 9)
+        this.lookAheadDepth = model.emptySquares;
 }
 
