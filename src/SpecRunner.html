@@ -1,0 +1,30 @@
+<!doctype html>
+<html>
+<head>
+    <title>Jasmine Spec Runner</title>
+    <link rel="stylesheet" type="text/css" href="js/lib/jasmine-1.2.0/jasmine.css">
+    <script src="js/lib/jasmine-1.2.0/jasmine.js"></script>
+    <script src="js/lib/jasmine-1.2.0/jasmine-html.js"></script>
+
+    <script src="js/spec/ReversiGameModelSpec.js"></script>
+
+    <script src="js/Helper.js"></script>
+    <script src="js/Board.js"></script>
+    <script src="js/GameModel.js"></script>
+    <script src="js/GameView.js"></script>
+    <script src="js/ReversiGameModel.js"></script>
+    <script src="js/PlayerSelector.js"></script>
+    
+    <script>
+        (function (env, reporter) {
+            env.updateInterval = 1000;
+            env.addReporter(reporter);
+            env.specFilter = reporter.specFilter.bind(reporter);
+            window.addEventListener('load', env.execute.bind(env));
+        }(jasmine.getEnv(), new jasmine.HtmlReporter()));
+    </script>
+</head>
+
+<body>
+</body>
+</html>
