@@ -15,6 +15,6 @@ Function.prototype.enableEventsOnPrototype = function () {
     this.prototype.evokeEvent = function (name, eventArgs) {
         getEvents(this, name).forEach(function (callback) {
             callback.call(this, eventArgs);
-        });
+        }, this);
     };
 };

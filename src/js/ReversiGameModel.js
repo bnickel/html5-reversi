@@ -2,6 +2,14 @@
     'use strict';
 
     function ReversiGameModel(rows, columns) {
+        if (rows % 2 !== 0 || columns % 2 !== 0) {
+            throw new Error('Reversi games must always have even rows and columns.');
+        }
+        
+        if (rows < 4 || columns < 4) {
+            throw new Error ('Reversi games must be at least 4 by 4.');
+        }
+        
         GameModel.call(this, rows, columns);
         this.safeDiscs = new Board(rows, columns, false);
     }
@@ -19,8 +27,8 @@
     ReversiGameModel.prototype.supressTurnValidation = false;
     ReversiGameModel.prototype.safeDiscs             = null;
 
-    ReversiGameModel.prototype.newGame = function (firstTurn) {
-        GameModel.prototype.newGame.call(this, firstTurn);
+    ReversiGameModel.prototype.startNewGame = function (firstTurn) {
+        GameModel.prototype.startNewGame.call(this, firstTurn);
 
         var board = this.board,
             pieces = [],

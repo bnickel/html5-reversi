@@ -71,7 +71,7 @@
      *
      * @param {number} [firstTurn=PieceState.BLACK] The first piece to move.
      */
-    GameModel.prototype.newGame = function (firstTurn) {
+    GameModel.prototype.startNewGame = function (firstTurn) {
         this.turn = firstTurn || PieceState.BLACK;
         this.setGameOver(false);
     };
