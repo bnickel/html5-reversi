@@ -1,5 +1,17 @@
+/**
+ * @preserve
+ * Copyright 2010-2012 Brian Nickel
+ * This source may be freely distributed under the MIT license.
+ */
+
 describe("ReversiGameModel", function () {
 
+    var model;
+    
+    beforeEach(function () {
+        model = new ReversiGameModel(8, 8);
+    });
+    
     describe("creating a new board", function () {
         
         it("throws an error on odd sizes", function () {
@@ -42,12 +54,6 @@ describe("ReversiGameModel", function () {
     });
     
     describe("starting a new game", function () {
-    
-        var model;
-        
-        beforeEach(function () {
-            model = new ReversiGameModel(8, 8);
-        });
     
         it("sets up the board correctly for a standard size", function () {
             model.startNewGame();
@@ -99,65 +105,69 @@ describe("ReversiGameModel", function () {
     
     describe("moving", function () {
     
-        var model;
-        
         beforeEach(function () {
-            model = new ReversiGameModel(8, 8);
             model.startNewGame();
         });
     
-        describe("successful moves", function() {
+        describe("successfully", function() {
         
-            it("can move up", function () {
-                var result = model.move(3, 4, PieceState.WHITE);
-                expect(result).toBe(true);
-                expect(model.whiteScore).toBe(4);
+            describe("in different directions", function() {
+                it("can move up", function () {
+                    var result = model.move(3, 4, PieceState.WHITE);
+                    expect(result).toBe(true);
+                    expect(model.whiteScore).toBe(4);
+                });
+            
+                it("can move down", function () {
+                    var result = model.move(6, 5, PieceState.WHITE);
+                    expect(result).toBe(true);
+                    expect(model.whiteScore).toBe(4);
+                });
+            
+                it("can move left", function () {
+                    var result = model.move(4, 3, PieceState.WHITE);
+                    expect(result).toBe(true);
+                    expect(model.whiteScore).toBe(4);
+                });
+            
+                it("can move right", function () {
+                    var result = model.move(5, 6, PieceState.WHITE);
+                    expect(result).toBe(true);
+                    expect(model.whiteScore).toBe(4);
+                });
+            
+                it("can move up-left", function () {
+                    model.board.setPiece(4, 4, PieceState.WHITE);
+                    var result = model.move(3, 3, PieceState.BLACK);
+                    expect(result).toBe(true);
+                    expect(model.whiteScore).toBe(2);
+                });
+            
+                it("can move down-right", function () {
+                    model.board.setPiece(5, 5, PieceState.WHITE);
+                    var result = model.move(6, 6, PieceState.BLACK);
+                    expect(result).toBe(true);
+                    expect(model.whiteScore).toBe(2);
+                });
+            
+                it("can move down-left", function () {
+                    model.board.setPiece(5, 4, PieceState.BLACK);
+                    var result = model.move(6, 3, PieceState.WHITE);
+                    expect(result).toBe(true);
+                    expect(model.blackScore).toBe(2);
+                });
+            
+                it("can move up-right", function () {
+                    model.board.setPiece(4, 5, PieceState.BLACK);
+                    var result = model.move(3, 6, PieceState.WHITE);
+                    expect(result).toBe(true);
+                    expect(model.blackScore).toBe(2);
+                });
             });
-        
-            it("can move down", function () {
-                var result = model.move(6, 5, PieceState.WHITE);
-                expect(result).toBe(true);
-                expect(model.whiteScore).toBe(4);
-            });
-        
-            it("can move left", function () {
-                var result = model.move(4, 3, PieceState.WHITE);
-                expect(result).toBe(true);
-                expect(model.whiteScore).toBe(4);
-            });
-        
-            it("can move right", function () {
-                var result = model.move(5, 6, PieceState.WHITE);
-                expect(result).toBe(true);
-                expect(model.whiteScore).toBe(4);
-            });
-        
-            it("can move up-left", function () {
-                model.board.setPiece(4, 4, PieceState.WHITE);
-                var result = model.move(3, 3, PieceState.BLACK);
-                expect(result).toBe(true);
-                expect(model.whiteScore).toBe(2);
-            });
-        
-            it("can move down-right", function () {
-                model.board.setPiece(5, 5, PieceState.WHITE);
-                var result = model.move(6, 6, PieceState.BLACK);
-                expect(result).toBe(true);
-                expect(model.whiteScore).toBe(2);
-            });
-        
-            it("can move down-left", function () {
-                model.board.setPiece(5, 4, PieceState.BLACK);
-                var result = model.move(6, 3, PieceState.WHITE);
-                expect(result).toBe(true);
-                expect(model.blackScore).toBe(2);
-            });
-        
-            it("can move up-right", function () {
-                model.board.setPiece(4, 5, PieceState.BLACK);
-                var result = model.move(3, 6, PieceState.WHITE);
-                expect(result).toBe(true);
-                expect(model.blackScore).toBe(2);
+            
+            it("changes the turn", function () {
+                model.move(3, 5, PieceState.BLACK);
+                expect(model.turn).toBe(PieceState.WHITE);
             });
             
             it("triggers a callback with the changes", function () {
@@ -170,9 +180,40 @@ describe("ReversiGameModel", function () {
                 expect(call.object).toBe(model);
                 expect(changes.length).toBe(2);
             });
+            
+            it("clears a simulation", function () {
+                model.simulateMove(3, 4, PieceState.WHITE);
+                model.move(3, 4, PieceState.WHITE);
+                expect(model.simulation).toBeNull();
+            });
+            
+            it("causes game over when only one color remains", function () {
+                model.move(3, 4, PieceState.WHITE);
+                model.move(6, 5, PieceState.WHITE);
+                expect(model.isGameOver).toBe(true);
+            });
+            
+            it("causes game over when the board is full", function () {
+                var board = model.board,
+                    r, c;
+                
+                for (r = 1; r <= board.rows; r += 1) {
+                    for (c = 1; c <= board.columns; c += 1) {
+                        if (r !== 1 || c !== 1) {
+                            board.setPiece(r, c, PieceState.WHITE);
+                        }
+                    }
+                }
+                
+                board.setPiece(board.rows, board.columns, PieceState.BLACK);
+                
+                model.move(1, 1, PieceState.BLACK);
+                
+                expect(model.isGameOver).toBe(true);
+            });
         });
     
-        describe("unsuccessful move attempts", function() {
+        describe("unsuccessfully", function() {
         
             it("reports when it cannot move", function () {
                 var result = model.move(1, 1, PieceState.WHITE);
@@ -181,6 +222,22 @@ describe("ReversiGameModel", function () {
         });
     });
     
-    describe("simulating", function () {
+    describe("simulating a move", function () {
+        
+        beforeEach(function () {
+            model.startNewGame();
+        });
+        
+        it("works on valid moves", function () {
+            var result = model.simulateMove(3, 4, PieceState.WHITE);
+            expect(result).toBe(true);
+            expect(model.simulation).not.toBe(null);
+        });
+        
+        it("works on valid moves", function () {
+            var result = model.simulateMove(2, 4, PieceState.WHITE);
+            expect(result).toBe(false);
+            expect(model.simulation).toBe(null);
+        });
     });
 });

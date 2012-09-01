@@ -276,8 +276,7 @@
     };
 
     ReversiGameModel.prototype.isFrontier = function (row, column) {
-        var r,
-            c;
+        var r, c;
 
         if (this.isEmpty(row, column)) {
             return false;
@@ -312,9 +311,9 @@
 
     ReversiGameModel.prototype.checkSafety = function (row, column, dr, dc, color) {
         var result = {
-            hasSpace: false,
-            isUnsafe: false
-        },
+                hasSpace: false,
+                isUnsafe: false
+            },
             r,
             c;
 
