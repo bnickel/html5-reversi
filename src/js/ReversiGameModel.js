@@ -72,7 +72,7 @@
         if (changes.length) {
             this.setPieces(changes);
             // TODO: Move from passing changes to passing {changes: changes}
-            this.onMove(changes);
+            this.onMove({changes: changes});
             return true;
         }
 

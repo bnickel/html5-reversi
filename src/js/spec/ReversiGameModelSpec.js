@@ -170,13 +170,28 @@ describe("ReversiGameModel", function () {
                 expect(model.turn).toBe(PieceState.WHITE);
             });
             
-            it("triggers a callback with the changes", function () {
+            it("triggers a 'move' callback with the changes", function () {
                 var spy = jasmine.createSpy('callback');
                 model.addEventListener('move', spy);
                 model.move(3, 4, PieceState.WHITE);
                 
+                expect(spy).toHaveBeenCalled();
+                
                 var call = spy.mostRecentCall;
-                var changes = call.args[0];
+                var changes = call.args[0].changes;
+                expect(call.object).toBe(model);
+                expect(changes.length).toBe(2);
+            });
+            
+            it("triggers a 'boardchanged' callback with the changes", function () {
+                var spy = jasmine.createSpy('callback');
+                model.addEventListener('boardchanged', spy);
+                model.move(3, 4, PieceState.WHITE);
+                
+                expect(spy).toHaveBeenCalled();
+                
+                var call = spy.mostRecentCall;
+                var changes = call.args[0].changes;
                 expect(call.object).toBe(model);
                 expect(changes.length).toBe(2);
             });
@@ -234,10 +249,18 @@ describe("ReversiGameModel", function () {
             expect(model.simulation).not.toBe(null);
         });
         
-        it("works on valid moves", function () {
+        it("doesn't work on invalid moves", function () {
             var result = model.simulateMove(2, 4, PieceState.WHITE);
             expect(result).toBe(false);
             expect(model.simulation).toBe(null);
+        });
+        
+        it("triggers a 'simulationchanged' callback", function () {
+            var spy = jasmine.createSpy('callback');
+            model.addEventListener('simulationchanged', spy);
+            model.simulateMove(3, 4, PieceState.WHITE);
+            
+            expect(spy).toHaveBeenCalled();
         });
     });
 });
