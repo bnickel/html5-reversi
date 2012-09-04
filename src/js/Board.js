@@ -69,6 +69,10 @@ var PieceState = {
             this.setPiece(change.row, change.column, change.color);
         }, this);
     };
+    
+    Board.prototype.contains = function (row, column) {
+        return row >= 1 && column >= 1 && row <= this.rows && column <= this.columns;
+    };
 
     Board.prototype.serialize = function () {
         return this.rows + ',' + this.columns + ',' + this.pieces.join(',');
