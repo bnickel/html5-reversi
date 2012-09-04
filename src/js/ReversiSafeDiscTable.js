@@ -1,12 +1,13 @@
 (function () {
     'use strict';
-
+    
     function ReversiSafeDiscTable(board) {
         this.setBoard(board);
     }
 
     ReversiSafeDiscTable.prototype.board = null;
     ReversiSafeDiscTable.prototype.table = null;
+    ReversiSafeDiscTable.prototype.safeDiscCounts = null;
     
     ReversiSafeDiscTable.prototype.update = function () {
         var newSafeDiscDetected = false;
@@ -33,12 +34,19 @@
     };
     
     ReversiSafeDiscTable.prototype.markAsSafe = function (row, column) {
+        var state = this.board.getPiece(row, column);
+        this.safeDiscCounts[state] = this.getSafeDiscCount(state) + 1;
         return this.table.setPiece(row, column, true);
+    };
+    
+    ReversiSafeDiscTable.prototype.getSafeDiscCount = function (state) {
+        return this.safeDiscCounts[state] || 0;
     };
     
     ReversiSafeDiscTable.prototype.setBoard = function (board) {
         this.board = board;
         this.table = new Board(board.rows, board.columns, false);
+        this.safeDiscCounts = {};
         this.update();
     };
     

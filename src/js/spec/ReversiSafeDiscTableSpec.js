@@ -105,4 +105,18 @@ describe("ReversiSafeDiscTable", function () {
             expect(table.isSafe(2, 3)).toBe(false);
         });
     });
+        
+    it("tracks the safe disc count", function () {
+        expect(table.getSafeDiscCount(PieceState.BLACK)).toBe(0);
+        expect(table.getSafeDiscCount(PieceState.WHITE)).toBe(0);
+        populateBoard(board, [
+                'WWW ',
+                'WWW ',
+                ' BBB',
+                ' BBB'
+            ]);
+        table.update();
+        expect(table.getSafeDiscCount(PieceState.BLACK)).toBe(5);
+        expect(table.getSafeDiscCount(PieceState.WHITE)).toBe(5);
+    });
 });
