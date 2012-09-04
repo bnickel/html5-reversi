@@ -220,7 +220,7 @@
 
         function testSafeDisc(color, row, column) {
             if (color !== PieceState.EMPTY
-                    && !self.getSafeDisc(row, column)
+                    && !self.isPieceSafe(row, column)
                     && !self.isOutflankable(row, column)) {
                 self.setSafeDisc(row, column, true);
                 statusChanged = true;
@@ -249,7 +249,7 @@
                     self.blackFrontierCount += 1;
                 }
 
-                if (self.getSafeDisc(row, column)) {
+                if (self.isPieceSafe(row, column)) {
                     self.blackSafeCount += 1;
                 }
 
@@ -263,7 +263,7 @@
                     self.whiteFrontierCount += 1;
                 }
 
-                if (self.getSafeDisc(row, column)) {
+                if (self.isPieceSafe(row, column)) {
                     self.whiteSafeCount += 1;
                 }
 
@@ -293,7 +293,7 @@
         return false;
     };
 
-    ReversiGameModel.prototype.getSafeDisc = function (row, column) {
+    ReversiGameModel.prototype.isPieceSafe = function (row, column) {
         return this.safeDiscs.getPiece(row, column);
     };
 
@@ -302,7 +302,7 @@
     };
 
     ReversiGameModel.prototype.isUnsafe = function (row, column, color) {
-        return this.getPiece(row, column) !== color || !this.getSafeDisc(row, column);
+        return this.getPiece(row, column) !== color || !this.isPieceSafe(row, column);
     };
 
     ReversiGameModel.prototype.isEmpty = function (row, column) {
@@ -329,7 +329,7 @@
     };
 
     ReversiGameModel.prototype.isOutflankable = function (row, column) {
-        var color = this.getPiece(row, column);
+        var color = this.board.getPiece(row, column);
 
         return this.isDirectionallyOutflankable(row, column,  0,  1, color) ||
                this.isDirectionallyOutflankable(row, column,  1,  0, color) ||
@@ -338,8 +338,8 @@
     };
 
     ReversiGameModel.prototype.isDirectionallyOutflankable = function (row, column, dr, dc, color) {
-        var side1 = this.checkSafety(row, column,  dr,  dc),
-            side2 = this.checkSafety(row, column, -dr, -dc);
+        var side1 = this.checkSafety(row, column,  dr,  dc, color),
+            side2 = this.checkSafety(row, column, -dr, -dc, color);
 
         return (side1.hasSpace && side2.hasSpace) ||
                (side1.hasSpace && side2.isUnsafe) ||
