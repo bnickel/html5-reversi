@@ -96,7 +96,7 @@
 
         for (row += dr, column += dc; true; row += dr, column += dc) {
 
-            if (row < 1 || column < 1 || row > board.rows || column > board.columns) {
+            if (!board.contains(row, column)) {
                 return false;
             }
 
@@ -143,7 +143,7 @@
             existing;
 
         for (row += dr, column += dc; true; row += dr, column += dc) {
-            if (row < 1 || column < 1 || row > board.rows || column > board.columns) {
+            if (!board.contains(row, column)) {
                 return;
             }
 
@@ -227,21 +227,19 @@
     };
 
     ReversiGameModel.prototype.isPieceOnTheFrontier = function (row, column) {
-        var r, c;
+        var result = false;
 
         if (this.getPiece(row, column) === PieceState.EMPTY) {
             return false;
         }
-
-        for (r = Math.max(1, row - 1); r <= Math.min(row + 1, 8); r += 1) {
-            for (c = Math.max(1, column - 1); c <= Math.min(column + 1, 8); c += 1) {
-                if (this.getPiece(r, c) === PieceState.EMPTY) {
-                    return true;
-                }
+        
+        this.board.forEachAroundPosition(row, column, function (color) {
+            if (color === PieceState.EMPTY) {
+                result = true;
             }
-        }
+        }, this);
 
-        return false;
+        return result;
     };
 
     ReversiGameModel.prototype.isPieceSafe = function (row, column) {
@@ -265,5 +263,5 @@
     };
 
     window.ReversiGameModel = ReversiGameModel;
-
+    
 }());

@@ -32,12 +32,55 @@ var PieceState = {
     Board.prototype.forEachPosition = function (callback, thisArg) {
         var row,
             column,
-            index;
+            index,
+            result;
 
         for (row = this.rows; row > 0; row -= 1) {
             for (column = this.columns; column > 0; column -= 1) {
                 index = this.positionToIndex(row, column);
-                callback.call(thisArg || this, this.pieces[index], row, column, index);
+                result = callback.call(thisArg || this, this.pieces[index], row, column, index);
+                
+                if (result === false) {
+                    return;
+                }
+            }
+        }
+    };
+    
+    Board.prototype.forEachAroundPosition = function (row, column, callback, thisArg) {
+        var r, c, index, result;
+        
+        for (r = row - 1; r <= row + 1; r += 1) {
+            for (c = column - 1; c <= column + 1; c += 1) {
+                if (r !== row && c !== column && this.contains(r, c)) {
+                    index = this.positionToIndex(r, c);
+                    result = callback.call(thisArg || this, this.pieces[index], r, c, index);
+                
+                    if (result === false) {
+                        return;
+                    }
+                }
+            }
+        }
+    };
+
+    Board.prototype.forEachInDirection = function (row, column, deltaRow, deltaColumn, callback, thisArg) {
+        var index,
+            result;
+        
+        while (true) {
+            row += deltaRow;
+            column += deltaColumn;
+            
+            if (!this.contains(row, column)) {
+                return;
+            }
+            
+            index = this.positionToIndex(row, column);
+            result = callback.call(thisArg || this, this.pieces[index], row, column, index);
+            
+            if (result === false) {
+                return;
             }
         }
     };
