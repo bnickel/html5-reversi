@@ -6,6 +6,7 @@
 <script src="js/Board.js"></script>
 <script src="js/GameModel.js"></script>
 <script src="js/GameView.js"></script>
+<script src="js/ReversiSafeDiscTable.js"></script>
 <script src="js/ReversiGameModel.js"></script>
 <script src="js/PlayerSelector.js"></script>
 <script>
@@ -21,7 +22,7 @@ window.onload = function()
 	model.addEventListener('gameover', onGameOver, false);
 	model.addEventListener('turnchanged', onTurnChanged, false);
 	model.addEventListener('move', onMove, false);
-	model.newGame();
+	model.startNewGame();
 
 	blackMode = new PlayerSelector('.player-selector.black', 'Black Player');
 	whiteMode = new PlayerSelector('.player-selector.white', 'White Player');
