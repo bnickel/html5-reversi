@@ -57,9 +57,9 @@ describe("ReversiGameModel", function () {
     
         it("sets up the board correctly for a standard size", function () {
             model.startNewGame();
-            expect(model.blackScore).toBe(2);
-            expect(model.whiteScore).toBe(2);
-            expect(model.emptyScore).toBe(60);
+            expect(model.getScore(PieceState.BLACK)).toBe(2);
+            expect(model.getScore(PieceState.WHITE)).toBe(2);
+            expect(model.getScore(PieceState.EMPTY)).toBe(60);
             expect(model.turn).toBe(PieceState.BLACK);
             expect(model.getPiece(4, 4)).toBe(PieceState.BLACK);
             expect(model.getPiece(5, 5)).toBe(PieceState.BLACK);
@@ -88,9 +88,9 @@ describe("ReversiGameModel", function () {
         it("clears the current game", function () {
             model.startNewGame();
             model.move(4, 6, PieceState.BLACK);
-            expect(model.blackScore).toBe(4);
+            expect(model.getScore(PieceState.BLACK)).toBe(4);
             model.startNewGame();
-            expect(model.blackScore).toBe(2);
+            expect(model.getScore(PieceState.BLACK)).toBe(2);
             expect(model.turn).toBe(PieceState.BLACK);
         });
         
@@ -115,53 +115,53 @@ describe("ReversiGameModel", function () {
                 it("can move up", function () {
                     var result = model.move(3, 4, PieceState.WHITE);
                     expect(result).toBe(true);
-                    expect(model.whiteScore).toBe(4);
+                    expect(model.getScore(PieceState.WHITE)).toBe(4);
                 });
             
                 it("can move down", function () {
                     var result = model.move(6, 5, PieceState.WHITE);
                     expect(result).toBe(true);
-                    expect(model.whiteScore).toBe(4);
+                    expect(model.getScore(PieceState.WHITE)).toBe(4);
                 });
             
                 it("can move left", function () {
                     var result = model.move(4, 3, PieceState.WHITE);
                     expect(result).toBe(true);
-                    expect(model.whiteScore).toBe(4);
+                    expect(model.getScore(PieceState.WHITE)).toBe(4);
                 });
             
                 it("can move right", function () {
                     var result = model.move(5, 6, PieceState.WHITE);
                     expect(result).toBe(true);
-                    expect(model.whiteScore).toBe(4);
+                    expect(model.getScore(PieceState.WHITE)).toBe(4);
                 });
             
                 it("can move up-left", function () {
                     model.board.setPiece(4, 4, PieceState.WHITE);
                     var result = model.move(3, 3, PieceState.BLACK);
                     expect(result).toBe(true);
-                    expect(model.whiteScore).toBe(2);
+                    expect(model.getScore(PieceState.WHITE)).toBe(2);
                 });
             
                 it("can move down-right", function () {
                     model.board.setPiece(5, 5, PieceState.WHITE);
                     var result = model.move(6, 6, PieceState.BLACK);
                     expect(result).toBe(true);
-                    expect(model.whiteScore).toBe(2);
+                    expect(model.getScore(PieceState.WHITE)).toBe(2);
                 });
             
                 it("can move down-left", function () {
                     model.board.setPiece(5, 4, PieceState.BLACK);
                     var result = model.move(6, 3, PieceState.WHITE);
                     expect(result).toBe(true);
-                    expect(model.blackScore).toBe(2);
+                    expect(model.getScore(PieceState.BLACK)).toBe(2);
                 });
             
                 it("can move up-right", function () {
                     model.board.setPiece(4, 5, PieceState.BLACK);
                     var result = model.move(3, 6, PieceState.WHITE);
                     expect(result).toBe(true);
-                    expect(model.blackScore).toBe(2);
+                    expect(model.getScore(PieceState.BLACK)).toBe(2);
                 });
             });
             
@@ -276,6 +276,33 @@ describe("ReversiGameModel", function () {
             
             expect(model.isPieceSafe(1, 8)).toBe(true);
             expect(model.getSafePieceCount(PieceState.WHITE)).toBe(1);
+        });
+    });
+    
+    describe("the frontier", function () {
+        
+        beforeEach(function () {
+            model.startNewGame();
+        });
+        
+        it("includes all the pieces at the start of the game", function () {
+            expect(model.getFrontierPieceCount(PieceState.WHITE)).toBe(2);
+            expect(model.getFrontierPieceCount(PieceState.BLACK)).toBe(2);
+        });
+        
+        it("doesn't include empty pieces", function () {
+            expect(model.isPieceOnTheFrontier(1, 1)).toBe(false);
+        });
+        
+        it("keeps its status until all spaces are blocked", function () {
+            model.move(3, 5, PieceState.BLACK);
+            model.move(3, 6, PieceState.WHITE);
+            model.move(4, 6, PieceState.BLACK);
+            model.move(5, 6, PieceState.WHITE);
+            model.move(6, 7, PieceState.BLACK);
+            expect(model.isPieceOnTheFrontier(4, 5)).toBe(true);
+            model.move(3, 4, PieceState.WHITE);
+            expect(model.isPieceOnTheFrontier(4, 5)).toBe(false);
         });
     });
 });

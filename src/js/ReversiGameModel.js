@@ -15,14 +15,11 @@
 
     ReversiGameModel.prototype = Object.create(GameModel.prototype);
 
-    ReversiGameModel.prototype.blackScore            = 0;
-    ReversiGameModel.prototype.whiteScore            = 0;
-    ReversiGameModel.prototype.emptyScore            = 0;
-    ReversiGameModel.prototype.blackFrontierCount    = 0;
-    ReversiGameModel.prototype.whiteFrontierCount    = 0;
     ReversiGameModel.prototype.useComplexStats       = false;
     ReversiGameModel.prototype.supressTurnValidation = false;
     ReversiGameModel.prototype.safeDiscTable         = null;
+    ReversiGameModel.prototype.scores                = null;
+    ReversiGameModel.prototype.frontierCounts        = null;
 
     ReversiGameModel.prototype.startNewGame = function (firstTurn) {
         GameModel.prototype.startNewGame.call(this, firstTurn);
@@ -180,9 +177,9 @@
     ReversiGameModel.prototype.onMove = function (eventArgs) {
         GameModel.prototype.onMove.call(this, eventArgs);
 
-        if (this.emptySquares === 0
-                || this.blackScore === 0
-                || this.whiteScore === 0) {
+        if (this.getScore(PieceState.EMPTY) === 0
+                || this.getScore(PieceState.WHITE) === 0
+                || this.getScore(PieceState.BLACK) === 0) {
 
             this.setGameOver(true);
             return;
@@ -205,47 +202,31 @@
 
     ReversiGameModel.prototype.updateStats = function () {
         var self = this;
-
-        self.blackScore         = 0;
-        self.whiteScore         = 0;
-        self.emptyScore         = 0;
-        self.blackFrontierCount = 0;
-        self.whiteFrontierCount = 0;
         
+        self.scores = {};
+        self.frontierCounts = {};
+
         self.safeDiscTable.update();
 
         self.board.forEachPosition(function (color, row, column) {
-            var isFrontier = self.useComplexStats && self.isFrontier(row, column);
-
-            switch (color) {
-
-            case PieceState.BLACK:
-
-                self.blackScore += 1;
-
-                if (isFrontier) {
-                    self.blackFrontierCount += 1;
-                }
-
-                break;
-
-            case PieceState.WHITE:
-
-                self.whiteScore += 1;
-
-                if (isFrontier) {
-                    self.whiteFrontierCount += 1;
-                }
-
-                break;
-
-            default:
-                self.emptyScore += 1;
+            
+            self.scores[color] = self.getScore(color) + 1;
+            
+            if (self.isPieceOnTheFrontier(row, column)) {
+                self.frontierCounts[color] = self.getFrontierPieceCount(color) + 1;
             }
         });
     };
+    
+    ReversiGameModel.prototype.getScore = function (color) {
+        return this.scores[color] || 0;
+    };
+    
+    ReversiGameModel.prototype.getFrontierPieceCount = function (color) {
+        return this.frontierCounts[color] || 0;
+    };
 
-    ReversiGameModel.prototype.isFrontier = function (row, column) {
+    ReversiGameModel.prototype.isPieceOnTheFrontier = function (row, column) {
         var r, c;
 
         if (this.getPiece(row, column) === PieceState.EMPTY) {
@@ -275,12 +256,8 @@
         target = target || new ReversiGameModel(1, 1);
 
         GameModel.prototype.clone.call(this, target);
-
-        target.blackScore            = this.blackScore;
-        target.whiteScore            = this.whiteScore;
-        target.emptyScore            = this.emptyScore;
-        target.blackFrontierCount    = this.blackFrontierCount;
-        target.whiteFrontierCount    = this.whiteFrontierCount;
+        
+        // TODO: Implement cloning and serialization.
         target.useComplexStats       = this.useComplexStats;
         target.supressTurnValidation = this.supressTurnValidation;
 
