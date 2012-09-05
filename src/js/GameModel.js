@@ -16,7 +16,7 @@
      * @param {number} columns The number of columns in the game.
      */
     function GameModel(rows, columns) {
-        this.board = new Board(rows, columns, PieceState.EMPTY);
+        this.setBoard(new Board(rows, columns, PieceState.EMPTY));
     }
 
     // Enable events on instances of {GameModel}.

@@ -11,7 +11,6 @@
         }
         
         GameModel.call(this, rows, columns);
-        this.safeDiscs = new Board(rows, columns, false);
     }
 
     ReversiGameModel.prototype = Object.create(GameModel.prototype);
@@ -21,11 +20,9 @@
     ReversiGameModel.prototype.emptyScore            = 0;
     ReversiGameModel.prototype.blackFrontierCount    = 0;
     ReversiGameModel.prototype.whiteFrontierCount    = 0;
-    ReversiGameModel.prototype.blackSafeCount        = 0;
-    ReversiGameModel.prototype.whiteSafeCount        = 0;
     ReversiGameModel.prototype.useComplexStats       = false;
     ReversiGameModel.prototype.supressTurnValidation = false;
-    ReversiGameModel.prototype.safeDiscs             = null;
+    ReversiGameModel.prototype.safeDiscTable         = null;
 
     ReversiGameModel.prototype.startNewGame = function (firstTurn) {
         GameModel.prototype.startNewGame.call(this, firstTurn);
@@ -171,8 +168,8 @@
     };
 
     ReversiGameModel.prototype.setBoard = function (board) {
+        this.safeDiscTable = new ReversiSafeDiscTable(board);
         GameModel.prototype.setBoard.call(this, board);
-        this.safeDiscs = new Board(board.rows, board.columns, false);
     };
 
     ReversiGameModel.prototype.onBoardChanged = function (eventArgs) {
@@ -207,34 +204,15 @@
     };
 
     ReversiGameModel.prototype.updateStats = function () {
-        var self = this,
-            statusChanged;
+        var self = this;
 
         self.blackScore         = 0;
         self.whiteScore         = 0;
         self.emptyScore         = 0;
         self.blackFrontierCount = 0;
         self.whiteFrontierCount = 0;
-        self.blackSafeCount     = 0;
-        self.whiteSafeCount     = 0;
-
-        function testSafeDisc(color, row, column) {
-            if (color !== PieceState.EMPTY
-                    && !self.isPieceSafe(row, column)
-                    && !self.isOutflankable(row, column)) {
-                self.setSafeDisc(row, column, true);
-                statusChanged = true;
-            }
-        }
-
-        if (self.useComplexStats) {
-            statusChanged = true;
-
-            while (statusChanged) {
-                statusChanged = false;
-                self.board.forEachPosition(testSafeDisc);
-            }
-        }
+        
+        self.safeDiscTable.update();
 
         self.board.forEachPosition(function (color, row, column) {
             var isFrontier = self.useComplexStats && self.isFrontier(row, column);
@@ -249,10 +227,6 @@
                     self.blackFrontierCount += 1;
                 }
 
-                if (self.isPieceSafe(row, column)) {
-                    self.blackSafeCount += 1;
-                }
-
                 break;
 
             case PieceState.WHITE:
@@ -261,10 +235,6 @@
 
                 if (isFrontier) {
                     self.whiteFrontierCount += 1;
-                }
-
-                if (self.isPieceSafe(row, column)) {
-                    self.whiteSafeCount += 1;
                 }
 
                 break;
@@ -278,13 +248,13 @@
     ReversiGameModel.prototype.isFrontier = function (row, column) {
         var r, c;
 
-        if (this.isEmpty(row, column)) {
+        if (this.getPiece(row, column) === PieceState.EMPTY) {
             return false;
         }
 
         for (r = Math.max(1, row - 1); r <= Math.min(row + 1, 8); r += 1) {
             for (c = Math.max(1, column - 1); c <= Math.min(column + 1, 8); c += 1) {
-                if (this.isEmpty(r, c)) {
+                if (this.getPiece(r, c) === PieceState.EMPTY) {
                     return true;
                 }
             }
@@ -294,56 +264,11 @@
     };
 
     ReversiGameModel.prototype.isPieceSafe = function (row, column) {
-        return this.safeDiscs.getPiece(row, column);
+        return this.safeDiscTable.isSafe(row, column);
     };
-
-    ReversiGameModel.prototype.setSafeDisc = function (row, column, value) {
-        this.safeDiscs.setPiece(row, column, value);
-    };
-
-    ReversiGameModel.prototype.isUnsafe = function (row, column, color) {
-        return this.getPiece(row, column) !== color || !this.isPieceSafe(row, column);
-    };
-
-    ReversiGameModel.prototype.isEmpty = function (row, column) {
-        return this.getPiece(row, column) === PieceState.EMPTY;
-    };
-
-    ReversiGameModel.prototype.checkSafety = function (row, column, dr, dc, color) {
-        var result = {
-                hasSpace: false,
-                isUnsafe: false
-            },
-            r,
-            c;
-
-        for (r = row + dr, c = column + dc; r >= 1 && r <= 8 && c >= 1 && c <= 8 && !result.hasSpace; r += dr, c += dc) {
-            if (this.isEmpty(r, c)) {
-                result.hasSpace = true;
-            } else if (this.isUnsafe(r, c)) {
-                result.isUnsafe = true;
-            }
-        }
-
-        return result;
-    };
-
-    ReversiGameModel.prototype.isOutflankable = function (row, column) {
-        var color = this.board.getPiece(row, column);
-
-        return this.isDirectionallyOutflankable(row, column,  0,  1, color) ||
-               this.isDirectionallyOutflankable(row, column,  1,  0, color) ||
-               this.isDirectionallyOutflankable(row, column,  1,  1, color) ||
-               this.isDirectionallyOutflankable(row, column,  1, -1, color);
-    };
-
-    ReversiGameModel.prototype.isDirectionallyOutflankable = function (row, column, dr, dc, color) {
-        var side1 = this.checkSafety(row, column,  dr,  dc, color),
-            side2 = this.checkSafety(row, column, -dr, -dc, color);
-
-        return (side1.hasSpace && side2.hasSpace) ||
-               (side1.hasSpace && side2.isUnsafe) ||
-               (side1.isUnsafe && side2.hasSpace);
+    
+    ReversiGameModel.prototype.getSafePieceCount = function (color) {
+        return this.safeDiscTable.getSafeDiscCount(color);
     };
 
     ReversiGameModel.prototype.clone = function (target) {
@@ -356,8 +281,6 @@
         target.emptyScore            = this.emptyScore;
         target.blackFrontierCount    = this.blackFrontierCount;
         target.whiteFrontierCount    = this.whiteFrontierCount;
-        target.blackSafeCount        = this.blackSafeCount;
-        target.whiteSafeCount        = this.whiteSafeCount;
         target.useComplexStats       = this.useComplexStats;
         target.supressTurnValidation = this.supressTurnValidation;
 

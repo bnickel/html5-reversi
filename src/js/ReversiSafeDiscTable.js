@@ -89,7 +89,7 @@
             this.markAsSafe(row, column);
             newSafeDiscDetected = true;
         }, this);
-            
+        
         if (newSafeDiscDetected) {
             this.update();
         }
