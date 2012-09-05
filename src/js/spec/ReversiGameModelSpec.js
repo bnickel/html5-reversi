@@ -263,4 +263,19 @@ describe("ReversiGameModel", function () {
             expect(spy).toHaveBeenCalled();
         });
     });
+    
+    describe("the safe disc count", function () {
+        it("increases when you reach a corner", function () {
+            model.startNewGame();
+            model.move(3, 5, PieceState.BLACK);
+            model.move(3, 6, PieceState.WHITE);
+            model.move(3, 7, PieceState.BLACK);
+            model.move(2, 7, PieceState.WHITE);
+            model.move(1, 7, PieceState.BLACK);
+            model.move(1, 8, PieceState.WHITE);
+            
+            expect(model.isPieceSafe(1, 8)).toBe(true);
+            expect(model.getSafePieceCount(PieceState.WHITE)).toBe(1);
+        });
+    });
 });
